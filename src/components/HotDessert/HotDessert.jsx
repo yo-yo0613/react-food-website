@@ -1,9 +1,9 @@
 import React from 'react';
-import Food1 from "../assets/food/food.png";
-import Food2 from "../assets/food/food2-plate.png";
-import Food3 from "../assets/food/banner.png";
+import Food1 from "../../assets/food/food.png";
+import Food2 from "../../assets/food/food2-plate.png";
+import Food3 from "../../assets/food/banner.png";
 import { delay, motion } from 'framer-motion';
-import { SlideUp } from '../components/Hero/Hero';
+import { SlideUp } from '../Hero/Hero';
 import { div } from 'framer-motion/client';
 
 const HotDessertData = [

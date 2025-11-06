@@ -4,7 +4,7 @@ import Food2 from '../assets/food/food2-plate.png'
 import Food3 from '../assets/food/banner.png'
 import { motion } from 'framer-motion'
 import { SlideUp } from '../components/Hero/Hero'
-import HotDessert from '../HotDessert/HotDessert'
+import HotDessert from '../components/HotDessert/HotDessert'
 import LatestDessert from '../components/LatesetDessert/LatestDessert'
 import Banner from '../components/Banner/Banner'
 
