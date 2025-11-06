@@ -7,6 +7,8 @@ import About from './pages/About'
 import Delivery from './pages/Delivery';
 import ContactUs from './pages/Contact';
 import Footer from '../src/components/Footer/Footer'
+import Login from './components/Auth/Login';
+import Signup from './components/Auth/Signup';
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
           <Route path='/about' element={<About/>} />
           <Route path='/delivery' element={<Delivery/>} />
           <Route path='/contact' element={<ContactUs/>}/>
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
         </Routes>
         <Footer/>
       </div>
