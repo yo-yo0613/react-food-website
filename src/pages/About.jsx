@@ -4,7 +4,7 @@ import { SlideUp } from '../components/Hero/Hero' // 請確認這個路徑是否
 import { IoMailOutline, IoCallOutline, IoLocationOutline } from 'react-icons/io5'
 
 // ⭐ 新增引入 Firebase 與 Auth 相關
-import { db } from '../../firebase/config'; 
+import { db } from '../firebase/config'; 
 import { ref, push } from "firebase/database";
 import { useAuth } from '../../contexts/AuthContext';
 
