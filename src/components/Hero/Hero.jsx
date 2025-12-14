@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'; // 1. 新增這行：引入跳轉功能
 import FoodPng from "../../assets/food/food.png";
 import Spoon from "../../assets/food/spoon.png";
 import Banana from "../../assets/food/banana2.png";
@@ -24,6 +25,9 @@ export const SlideUp = (delay) => {
 }
 
 function Hero() {
+  // 2. 新增這行：建立 navigate 變數
+  const navigate = useNavigate();
+
   return (
     <main className="relative overflow-hidden">
         {/* Background yellow */}
@@ -71,15 +75,19 @@ function Hero() {
                         Freshly made, lighter and cleaner—fuel your day from the first bite
                         —pure flavor you can trust.
                     </motion.p>
+                    
+                    {/* 3. 修改這裡：加上 onClick */}
                     <motion.button 
                     variants={SlideUp(2)} 
                     initial="hidden"
                     whileInView="show"
+                    onClick={() => navigate(`/order/1`)} 
                     className='btn-primary inline-block 
                     !mt-10'>
                         <IoCartOutline className='inline mr-2'/>
                         Order Now
                     </motion.button>
+
                 </div>
                 {/* Images here */}
                 <div className='relative'>
