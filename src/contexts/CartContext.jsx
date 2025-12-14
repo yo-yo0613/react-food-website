@@ -8,7 +8,7 @@ import { ref, set, onValue, remove, push } from "firebase/database";
 import { loadStripe } from "@stripe/stripe-js";
 
 // 請換成你的 Stripe "Publishable Key" (pk_test_...)
-const stripePromise = loadStripe("pk_test_你的Stripe公開金鑰填在這裡");
+const stripePromise = loadStripe("sk_test_51SeIyEPlWwyWz35ky6FU17PJmoqeZEySpAhG10IzkLOBpgXAUjnnv77tVezY0A9GkXTdjXWbkcgQAJechYXtJYTx00x4g43Btr");
 
 const CartContext = createContext();
 

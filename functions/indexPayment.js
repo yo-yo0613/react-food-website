@@ -4,7 +4,7 @@ const admin = require("firebase-admin");
 const cors = require("cors")({ origin: true });
 
 // 初始化 Stripe (請去 Stripe 官網註冊拿 "Secret Key" sk_test_...)
-const stripe = require("stripe")("sk_test_你的Stripe測試密鑰填在這裡");
+const stripe = require("stripe")("pk_test_51SeIyEPlWwyWz35kolNXt2Cyonymlx24PSzIIvu41SGPzLJHhq70EEriaz9oIBUyGmwDj88OVnogR5K8nBhDEIZt00XJHOLGRv");
 
 admin.initializeApp();
 
