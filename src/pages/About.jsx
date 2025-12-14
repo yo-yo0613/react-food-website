@@ -6,7 +6,7 @@ import { IoMailOutline, IoCallOutline, IoLocationOutline } from 'react-icons/io5
 // ⭐ 新增引入 Firebase 與 Auth 相關
 import { db } from '../firebase/config'; 
 import { ref, push } from "firebase/database";
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../contexts/AuthContext';
 
 const contactCards = [
   {
