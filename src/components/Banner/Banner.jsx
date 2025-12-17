@@ -2,8 +2,11 @@ import React from 'react'
 import BannerPng from "../../assets/food/banner.png";
 import { motion } from "framer-motion";
 import { SlideUp } from '../Hero/Hero';
+import { useNavigate } from 'react-router-dom';
 
 function Banner() {
+
+    const navigate = useNavigate();
   return (
     <section>
         <div className='container py-24'>
@@ -67,6 +70,7 @@ function Banner() {
                     <motion.button 
                     variants={SlideUp(1.6)}
                     initial="hidden"
+                    onClick={() => navigate(`/order/3`)}
                     whileInView="show"
                     className='btn-primary'>
                         Order Now
