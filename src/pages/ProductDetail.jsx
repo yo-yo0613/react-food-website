@@ -1,19 +1,21 @@
 // src/pages/ProductDetail.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom'; // 1. 引入 useParams
+import { useNavigate, useParams } from 'react-router-dom';
 import { FaStar, FaArrowLeft, FaMinus, FaPlus } from 'react-icons/fa';
+import { useCart } from '../contexts/CartContext'; // 確保路徑正確
+import Notification from '../components/Notification/Notification'; // 引入通知元件
 
-// 2. 引入你的圖片 (請確認路徑正確)
+// 圖片引入
 import Food1 from "../assets/food/food.png";
 import Food2 from "../assets/food/food2-plate.png";
 import Food3 from "../assets/food/banner.png";
 
 const ProductDetail = () => {
   const navigate = useNavigate();
-  const { id } = useParams(); // 3. 抓取網址上的 id (例如: 1, 2, 3)
+  const { id } = useParams();
+  const { addToCart } = useCart(); // 取得 Context 方法
   
-  // 4. 定義商品資料庫 (模擬後端資料)
-  // 注意：這裡的 id 必須跟 PopularRecipe 裡的 id 對應
+  // 商品資料
   const productsData = [
     {
       id: 1,
@@ -41,114 +43,202 @@ const ProductDetail = () => {
       image: Food3, 
       rating: 4.9,
       reviews: 230
+    },
+    {
+      id: 4,
+      title: "Breakfast Special",
+      price: 12.99,
+      description: "Fresh eggs, bacon, toast, and seasonal fruits",
+      image: Food1,
+      rating: 4.6,
+      reviews: 95
+    },
+    {
+      id: 5,
+      title: "Lunch Combo",
+      price: 15.99,
+      description: "Grilled chicken with fresh salad and soup",
+      image: Food2,
+      rating: 4.7,
+      reviews: 110
+    },
+    {
+      id: 6,
+      title: "Dinner Delight",
+      price: 24.99,
+      description: "Premium steak with roasted vegetables",
+      image: Food3,
+      rating: 4.9,
+      reviews: 150
+    },
+    {
+      id: 7,
+      title: "Sweet Pancakes",
+      price: 9.99,
+      description: "Fluffy pancakes with maple syrup",
+      image: Food1,
+      rating: 4.4,
+      reviews: 70
+    },
+    {
+      id: 8,
+      title: "Fresh Salad",
+      price: 8.99,
+      description: "Mixed greens with house dressing",
+      image: Food2,
+      rating: 4.3,
+      reviews: 60
+    },
+    {
+      id: 9,
+      title: "HodDessert Deluxe",
+      price: 7.99,
+      description: "升級版 HodDessert，加入更多配料與特製醬料，帶來更豐富的味覺享受。",
+      image: Food3,
+      rating: 4.9,
+      reviews: 180
+    },
+    {
+      id: 10,
+      title: "Gourmet HodCake",
+      price: 6.50,
+      description: "精選食材製作的 HodCake，口感細膩，適合喜愛高品質料理的您。",
+      image: Food1,
+      rating: 4.8,
+      reviews: 140
+    },
+    {
+      id: 11,
+      title: "Vegan HodDessert",
+      price: 5.49,
+      description: "專為素食者設計的 HodDessert，使用新鮮蔬菜與植物性醬料，健康又美味。",
+      image: Food2,
+      rating: 4.5,
+      reviews: 90
+    },
+    {
+      id: 12,
+      title: "HodCake with a Twist",
+      price: 6.00,
+      description: "創新口味的 HodCake，融合多種風味，帶來前所未有的美食體驗。",
+      image: Food3,
+      rating: 4.7,
+      reviews: 130
     }
   ];
 
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
+  const [showNotify, setShowNotify] = useState(false); // 控制通知顯示
 
-  // 5. 當 id 改變時，更新 product 狀態
   useEffect(() => {
-    // 網址傳來的 id 是字串，要用 parseInt 轉成數字
     const foundProduct = productsData.find((p) => p.id === parseInt(id));
-    
     if (foundProduct) {
       setProduct(foundProduct);
     } else {
-      // 如果找不到商品，導回首頁 (或是顯示查無此商品)
-      console.log("Product not found");
       navigate('/'); 
     }
   }, [id, navigate]);
 
-  // 數量加減邏輯
   const handleQuantityChange = (type) => {
     if (type === 'minus' && quantity > 1) setQuantity(quantity - 1);
     if (type === 'plus') setQuantity(quantity + 1);
   };
 
-  // 6. 如果資料還沒載入，顯示 Loading 防止報錯
+  // 加入購物車邏輯
+  const handleAddToCart = () => {
+    // 傳送商品資訊與數量給 Context
+    // 注意：這裡假設你的 Context 能夠處理 { ...item, quantity } 的格式
+    addToCart({ ...product, quantity: quantity });
+    
+    // 顯示通知
+    setShowNotify(true);
+    
+    // 2秒後自動關閉
+    setTimeout(() => {
+      setShowNotify(false);
+    }, 2000);
+  };
+
   if (!product) {
     return <div className="h-screen flex justify-center items-center text-2xl">Loading...</div>;
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-20"> 
+    <div className="container mx-auto px-4 py-8 mt-20 relative min-h-[60vh] pb-20"> 
       
+      {/* 通知元件掛載 */}
+      <Notification 
+        message={`已將 ${quantity} 份 ${product.title} 加入購物車`} 
+        isVisible={showNotify} 
+      />
+
       {/* 頂部返回按鈕 */}
       <button 
         onClick={() => navigate(-1)} 
-        className="flex items-center text-gray-600 hover:text-black mb-6 transition-colors"
+        className="flex items-center text-gray-600 hover:text-black mb-6 transition-colors font-medium"
       >
         <FaArrowLeft className="mr-2" /> 
         返回菜單
       </button>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         
-        {/* 左側：圖片區 (根據選到的商品顯示圖片) */}
-        <div className="space-y-4 flex flex-col items-center">
-          <div className="w-full h-[400px] bg-lightYellow/20 rounded-2xl flex justify-center items-center shadow-sm relative overflow-hidden">
-            <img 
-              src={product.image} 
-              alt={product.title} 
-              className="w-[60%] md:w-[70%] object-contain drop-shadow-xl hover:scale-110 transition-transform duration-500 animate-spin-slow"
-            />
-          </div>
+        {/* 左側：圖片區 */}
+        <div className="w-full h-[400px] bg-yellow-100/30 rounded-3xl flex justify-center items-center shadow-sm relative group">
+          <img 
+            src={product.image} 
+            alt={product.title} 
+            className="w-[65%] md:w-[75%] object-contain drop-shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 animate-spin-slow"
+          />
         </div>
 
         {/* 右側：資訊區 */}
         <div className="flex flex-col justify-start space-y-6">
           
-          {/* 標題與價格 */}
           <div>
-            <h1 className="text-4xl font-bold text-gray-800 mb-2">{product.title}</h1>
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="flex text-yellow-400">
-                {/* 動態顯示星星 */}
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-2 font-league">{product.title}</h1>
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="flex text-yellow-400 text-lg">
                 {[...Array(5)].map((_, i) => (
-                   <FaStar key={i} className={i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-300"} />
+                   <FaStar key={i} className={i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-200"} />
                 ))}
               </div>
-              <span className="text-gray-500 text-sm">({product.reviews} 評論)</span>
+              <span className="text-gray-400 text-sm font-medium">({product.reviews} 評論)</span>
             </div>
-            <p className="text-3xl font-bold text-primary">${product.price}</p>
+            <p className="text-3xl font-bold text-yellow-500">${product.price}</p>
           </div>
 
-          {/* 描述 */}
-          <div className="bg-gray-50 p-4 rounded-xl">
-            <h3 className="font-semibold mb-2 text-gray-700">商品描述</h3>
-            <p className="text-gray-600 leading-relaxed">
+          <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
+            <h3 className="font-bold mb-2 text-gray-800">關於這道料理</h3>
+            <p className="text-gray-600 leading-relaxed text-sm md:text-base">
               {product.description}
             </p>
           </div>
 
           {/* 底部操作區 */}
-          <div className="flex items-center space-x-4 pt-4 border-t border-gray-100">
+          <div className="flex items-center space-x-4 pt-4">
             {/* 數量選擇器 */}
-            <div className="flex items-center border border-gray-300 rounded-lg">
+            <div className="flex items-center bg-gray-100 rounded-full p-1">
               <button 
                 onClick={() => handleQuantityChange('minus')}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 transition"
+                className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm text-gray-600 hover:text-yellow-500 transition"
               >
-                <FaMinus size={12} />
+                <FaMinus size={10} />
               </button>
-              <span className="px-4 py-2 font-semibold text-gray-700 w-12 text-center">{quantity}</span>
+              <span className="w-12 text-center font-bold text-lg text-gray-700">{quantity}</span>
               <button 
                 onClick={() => handleQuantityChange('plus')}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 transition"
+                className="w-10 h-10 flex items-center justify-center bg-white rounded-full shadow-sm text-gray-600 hover:text-yellow-500 transition"
               >
-                <FaPlus size={12} />
+                <FaPlus size={10} />
               </button>
             </div>
 
             {/* Order Now 按鈕 */}
             <button 
-              className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-3 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:-translate-y-1"
-              onClick={() => {
-                alert(`已將 ${quantity} 份 ${product.title} 加入購物車！`);
-                // 這裡之後可以寫入 Context 或是 Firebase
-              }}
+              className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-full shadow-lg shadow-yellow-400/30 hover:shadow-xl hover:shadow-yellow-400/40 transition-all transform hover:-translate-y-1 active:scale-95"
+              onClick={handleAddToCart}
             >
               Order Now
             </button>

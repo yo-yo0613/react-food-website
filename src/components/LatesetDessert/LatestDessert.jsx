@@ -1,16 +1,11 @@
-// src/components/LatesetDessert/LatestDessert.jsx (或者是你的檔案路徑)
 import React from 'react';
 import { motion } from 'framer-motion';
 import { SlideUp } from '../Hero/Hero';
-import { useCart } from '../../contexts/CartContext'; // ⭐ 1. 引入
-
-// 移除你原本的 HotDessertData，因為我們現在是從 props 傳入 items
-// 或者如果是 HotDessert.jsx 獨立檔案，則引入 context
+import { useNavigate } from 'react-router-dom'; // 1. 改用 useNavigate
 
 function LatestDessert({ items, startIndex, endIndex }) {
-  const { addToCart } = useCart(); // ⭐ 2. 取得加入購物車功能
+  const navigate = useNavigate(); // 2. 初始化
 
-  // 防呆：如果 items 沒傳進來
   const displayItems = items ? items.slice(startIndex, endIndex) : [];
 
   return (
@@ -20,11 +15,11 @@ function LatestDessert({ items, startIndex, endIndex }) {
           {displayItems.map((item) => {
             return (
               <motion.div
-                key={item.id} // ⭐ 記得要加 key
+                key={item.id}
                 variants={SlideUp(item.delay)}
                 initial="hidden"
                 whileInView="show"
-                className='group bg-white/50 shadow-md p-4 flex items-start gap-4'
+                className='group bg-white/50 shadow-md p-4 flex items-start gap-4 hover:bg-white transition-colors duration-300 rounded-xl'
               >
                 <img
                   src={item.img}
@@ -34,16 +29,16 @@ function LatestDessert({ items, startIndex, endIndex }) {
                 <div className="flex-1">
                   <h3 className='text-xl font-semibold'>{item.name}</h3>
                   {item.description && (
-                    <p className='text-gray-600 text-sm mt-1 mb-2'>{item.description}</p>
+                    <p className='text-gray-600 text-sm mt-1 mb-2 line-clamp-2'>{item.description}</p>
                   )}
-                  <div className='flex items-center justify-between w-full space-x-8 mt-2'>
-                    <p className='text-xl text-yellow-500'>${item.price}</p>
-                    {/* ⭐ 3. 修改按鈕 onClick 事件 */}
+                  <div className='flex items-center justify-between w-full mt-2'>
+                    <p className='text-xl text-yellow-500 font-bold'>${item.price}</p>
+                    {/* 3. 修改按鈕：跳轉到詳情頁 */}
                     <button 
-                        onClick={() => addToCart(item)}
-                        className="btn-primary"
+                        onClick={() => navigate(`/order/${item.id}`)} // 請確認你的路由設定是否為 /order/:id
+                        className="btn-primary text-sm px-4 py-2"
                     >
-                      Add to Cart
+                      Buy Now
                     </button>
                   </div>
                 </div>

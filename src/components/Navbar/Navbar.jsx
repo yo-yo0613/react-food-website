@@ -1,12 +1,13 @@
 // src/components/Navbar/Navbar.jsx
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { IoCarOutline, IoTrashOutline, IoArrowBack, IoCardOutline, IoCashOutline, IoPhonePortraitOutline } from "react-icons/io5"; // ⭐ 增加一些 Icon
+import { IoCarOutline, IoTrashOutline, IoArrowBack, IoCardOutline, IoCashOutline, IoPhonePortraitOutline } from "react-icons/io5";
 import { RiMenu3Line, RiCloseLine } from "react-icons/ri";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../../contexts/AuthContext"; 
 import { useCart } from "../../contexts/CartContext"; 
 import Logo from "../../assets/food/logo.png"; 
+import Notification from "../Notification/Notification";
 
 const NavMenu = [
   { id: 1, title: "Home", path: "/",        delay: 0.1 },
@@ -33,7 +34,7 @@ function Navbar() {
   const [isPaymentMode, setIsPaymentMode] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("Cash");
 
-  // ⭐ 新增：信用卡輸入狀態
+  // 信用卡輸入狀態
   const [cardInfo, setCardInfo] = useState({
       number: "",
       expiry: "",
@@ -43,6 +44,16 @@ function Navbar() {
   const { user, logout } = useAuth();
   const { cartItems, removeFromCart, cartTotal, cartCount, checkout } = useCart();
   const navigate = useNavigate();
+
+  const [notify, setNotify] = useState({ isVisible: false, message: "" });
+
+  const showNotification = (message) => {
+    setNotify({ isVisible: true, message });
+    // 3秒後自動關閉
+    setTimeout(() => {
+      setNotify({ ...notify, isVisible: false });
+    }, 3000);
+  };
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   
@@ -62,33 +73,30 @@ function Navbar() {
     }
   };
 
-  // ⭐ 處理信用卡輸入變更
   const handleCardChange = (e) => {
       const { name, value } = e.target;
       setCardInfo(prev => ({ ...prev, [name]: value }));
   }
 
-  // ⭐ 處理最終結帳 (邏輯增強)
   const handleConfirmPayment = () => {
       let detailsToSend = {};
 
       if (paymentMethod === 'Credit Card') {
-          // 簡單驗證格式
           if (cardInfo.number.length < 16 || !cardInfo.expiry.includes('/') || !cardInfo.cvc) {
-              alert("請輸入正確的信用卡資訊 (卡號16碼, 效期 MM/YY, CVC 3碼)");
+              showNotification("請輸入正確的信用卡資訊 (格式錯誤)");
               return;
           }
-          // 傳送完整的卡號資訊給 Context 去做 Stripe 驗證
-          // 注意：真實環境中，Context 驗證完後不會儲存這些資料到資料庫，只存 Token
           detailsToSend = {
-              number: cardInfo.number.replace(/\s/g, ''), // 去除空白
+              number: cardInfo.number.replace(/\s/g, ''),
               expiry: cardInfo.expiry,
               cvc: cardInfo.cvc
           };
       }
 
-      // 呼叫 Context 結帳
+      // ⭐ 修正 1：把這行加回來！這樣購物車才會被清空
       checkout(paymentMethod, detailsToSend);
+
+      showNotification(`付款成功！使用方式: ${paymentMethod}`);
       
       // 關閉視窗與重置
       setIsCartOpen(false);
@@ -97,6 +105,11 @@ function Navbar() {
   };
 
   return (
+  <>
+    <Notification 
+      message={notify.message}
+      isVisible={notify.isVisible}
+    />
     <div className="container flex justify-between items-center font-league relative z-50">
       <motion.img
         initial={{ opacity: 0 }}
@@ -152,7 +165,7 @@ function Navbar() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="absolute right-0 top-12 w-96 bg-white shadow-2xl rounded-lg p-4 border border-gray-100 z-50" // ⭐ 加寬寬度 w-96 容納表單
+                className="absolute right-0 top-12 w-96 bg-white shadow-2xl rounded-lg p-4 border border-gray-100 z-50"
                 >
                 
                 {!isPaymentMode ? (
@@ -165,7 +178,12 @@ function Navbar() {
                             <div className="max-h-60 overflow-y-auto space-y-3">
                             {cartItems.map((item) => (
                                 <div key={item.id} className="flex items-center gap-3">
-                                <img src={item.img} alt={item.name} className="w-12 h-12 rounded object-cover" />
+                                {/* ⭐ 修正 2：使用 item.image || item.img 確保兩邊來源的圖片都能顯示 */}
+                                <img 
+                                    src={item.image || item.img} 
+                                    alt={item.name} 
+                                    className="w-12 h-12 rounded object-cover" 
+                                />
                                 <div className="flex-1">
                                     <h4 className="text-sm font-semibold truncate">{item.name}</h4>
                                     <p className="text-xs text-gray-500">
@@ -252,7 +270,6 @@ function Navbar() {
                                     <span className="font-medium text-blue-700">Credit Card</span>
                                 </div>
 
-                                {/* ⭐ 如果選擇信用卡，顯示輸入框 */}
                                 {paymentMethod === 'Credit Card' && (
                                     <motion.div 
                                         initial={{ opacity: 0, height: 0 }}
@@ -261,30 +278,30 @@ function Navbar() {
                                     >
                                         <input 
                                             type="text" 
-                                            name="number"
-                                            value={cardInfo.number}
-                                            onChange={handleCardChange}
+                                            name="number" 
+                                            value={cardInfo.number} 
+                                            onChange={handleCardChange} 
                                             placeholder="Card Number (0000 0000 0000 0000)" 
-                                            maxLength="19"
+                                            maxLength="19" 
                                             className="w-full p-2 border rounded bg-white text-sm"
                                         />
                                         <div className="flex gap-2">
                                             <input 
                                                 type="text" 
-                                                name="expiry"
-                                                value={cardInfo.expiry}
-                                                onChange={handleCardChange}
+                                                name="expiry" 
+                                                value={cardInfo.expiry} 
+                                                onChange={handleCardChange} 
                                                 placeholder="MM/YY" 
-                                                maxLength="5"
+                                                maxLength="5" 
                                                 className="w-1/2 p-2 border rounded bg-white text-sm"
                                             />
                                             <input 
                                                 type="text" 
-                                                name="cvc"
-                                                value={cardInfo.cvc}
-                                                onChange={handleCardChange}
+                                                name="cvc" 
+                                                value={cardInfo.cvc} 
+                                                onChange={handleCardChange} 
                                                 placeholder="CVC" 
-                                                maxLength="3"
+                                                maxLength="3" 
                                                 className="w-1/2 p-2 border rounded bg-white text-sm"
                                             />
                                         </div>
@@ -302,7 +319,6 @@ function Navbar() {
                             onClick={handleConfirmPayment}
                             className="w-full bg-dark text-white py-2 rounded-lg hover:bg-black font-semibold"
                         >
-                            {/* 根據付款方式改變按鈕文字 */}
                             {paymentMethod === 'Line Pay' ? 'Pay with Line Pay' : 'Confirm Payment'}
                         </button>
                     </>
@@ -351,6 +367,7 @@ function Navbar() {
          {/* ...手機版選單內容... */}
        </motion.div>
     </div>
+    </>
   );
 }
 
