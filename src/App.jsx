@@ -13,6 +13,7 @@ import Signup from './components/Auth/Signup';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';       // ⭐ 新增
 import Profile from './pages/Profile'; // ⭐ 新增
+import AdminDashboard from './pages/AdminBashboard';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
           <Route path="/order/:id" element={<ProductDetail />} />
           <Route path="/cart" element={<Cart />} />       {/* ⭐ 新增路由 */}
           <Route path="/profile" element={<Profile />} /> {/* ⭐ 新增路由 */}
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
         <Footer/>
       </div>

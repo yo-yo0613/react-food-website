@@ -90,6 +90,15 @@ function Navbar() {
         {/* Auth Section */}
         {user ? (
           <div className="flex items-center gap-3">
+            {/* ⭐ 如果是管理員，顯示後台按鈕 (這裡用你的 email 當作判斷) */}
+            {user.email === "chengyouli37@gmail.com" && (
+                <button 
+                    onClick={() => navigate('/admin')}
+                    className="px-3 py-1 bg-black text-white text-sm rounded-lg font-bold hover:bg-gray-800"
+                >
+                    Admin
+                </button>
+            )}
             {/* ⭐ 使用者按鈕：顯示圖片 或 名字 */}
             <button 
               onClick={() => navigate('/profile')}
