@@ -5,74 +5,58 @@ import Food2 from '../assets/food/food2-plate.png'
 import Food3 from '../assets/food/banner.png'
 import { motion, AnimatePresence } from 'framer-motion'
 import { SlideUp } from '../components/Hero/Hero'
-import LatestDessert from '../components/LatesetDessert/LatestDessert'
 import Banner from '../components/Banner/Banner'
-
-const categories = [
-  { id: 'all', name: 'All' },
-  { id: 'breakfast', name: 'Breakfast' },
-  { id: 'lunch', name: 'Lunch' },
-  { id: 'dinner', name: 'Dinner' },
-  { id: 'desserts', name: 'Desserts' },
-  { id: 'drinks', name: 'Drinks' }
-]
-
-const menuItems = [
-  // Breakfast
-  { id: 1, name: 'Breakfast Special', description: 'Fresh eggs, bacon, toast, and seasonal fruits', img: Food1, price: '12.99', category: 'breakfast', delay: 0.1 },
-  { id: 4, name: 'Sweet Pancakes', description: 'Fluffy pancakes with maple syrup', img: Food1, price: '9.99', category: 'breakfast', delay: 0.2 },
-  
-  // Lunch
-  { id: 2, name: 'Lunch Combo', description: 'Grilled chicken with fresh salad and soup', img: Food2, price: '15.99', category: 'lunch', delay: 0.1 },
-  { id: 5, name: 'Fresh Salad', description: 'Mixed greens with house dressing', img: Food2, price: '8.99', category: 'lunch', delay: 0.2 },
-  { id: 8, name: 'Veggie Wrap', description: 'Fresh vegetables with hummus', img: Food2, price: '10.99', category: 'lunch', delay: 0.3 },
-  { id: 12, name: 'Caesar Salad', description: 'Romaine lettuce with Caesar dressing', img: Food3, price: '11.99', category: 'lunch', delay: 0.4 },
-
-  // Dinner
-  { id: 3, name: 'Dinner Delight', description: 'Premium steak with roasted vegetables', img: Food3, price: '24.99', category: 'dinner', delay: 0.1 },
-  { id: 9, name: 'Fish Tacos', description: 'Grilled fish with fresh salsa', img: Food3, price: '13.99', category: 'dinner', delay: 0.2 },
-  { id: 11, name: 'Pasta Carbonara', description: 'Classic Italian pasta with cream sauce', img: Food2, price: '16.99', category: 'dinner', delay: 0.3 },
-
-  // Desserts
-  { id: 6, name: 'Chocolate Cake', description: 'Rich chocolate layer cake', img: Food3, price: '6.99', category: 'desserts', delay: 0.1 },
-  { id: 10, name: 'Ice Cream Sundae', description: 'Vanilla ice cream with toppings', img: Food1, price: '7.99', category: 'desserts', delay: 0.2 },
-
-  // Drinks
-  { id: 7, name: 'Fruit Smoothie', description: 'Blend of fresh seasonal fruits', img: Food1, price: '5.99', category: 'drinks', delay: 0.1 },
-]
+import { useTranslation } from 'react-i18next'; // ⭐ 1. 引入翻譯 hook
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState('all')
+  const { t } = useTranslation(); // ⭐ 2. 使用 hook
 
-  // ⭐ 核心邏輯：根據分類篩選資料
+  // ⭐ 3. 將 menuItems 移入並使用翻譯 key
+  const menuItems = [
+    { id: 1, name: t('menu.items.breakfast_special.name'), description: t('menu.items.breakfast_special.desc'), img: Food1, price: '12.99', category: 'breakfast' },
+    { id: 4, name: t('menu.items.sweet_pancakes.name'), description: t('menu.items.sweet_pancakes.desc'), img: Food1, price: '9.99', category: 'breakfast' },
+    
+    { id: 2, name: t('menu.items.lunch_combo.name'), description: t('menu.items.lunch_combo.desc'), img: Food2, price: '15.99', category: 'lunch' },
+    { id: 5, name: t('menu.items.fresh_salad.name'), description: t('menu.items.fresh_salad.desc'), img: Food2, price: '8.99', category: 'lunch' },
+    { id: 8, name: t('menu.items.veggie_wrap.name'), description: t('menu.items.veggie_wrap.desc'), img: Food2, price: '10.99', category: 'lunch' },
+    { id: 12, name: t('menu.items.caesar_salad.name'), description: t('menu.items.caesar_salad.desc'), img: Food3, price: '11.99', category: 'lunch' },
+
+    { id: 3, name: t('menu.items.dinner_delight.name'), description: t('menu.items.dinner_delight.desc'), img: Food3, price: '24.99', category: 'dinner' },
+    { id: 9, name: t('menu.items.fish_tacos.name'), description: t('menu.items.fish_tacos.desc'), img: Food3, price: '13.99', category: 'dinner' },
+    { id: 11, name: t('menu.items.pasta.name'), description: t('menu.items.pasta.desc'), img: Food2, price: '16.99', category: 'dinner' },
+
+    { id: 6, name: t('menu.items.chocolate_cake.name'), description: t('menu.items.chocolate_cake.desc'), img: Food3, price: '6.99', category: 'desserts' },
+    { id: 10, name: t('menu.items.ice_cream.name'), description: t('menu.items.ice_cream.desc'), img: Food1, price: '7.99', category: 'desserts' },
+
+    { id: 7, name: t('menu.items.fruit_smoothie.name'), description: t('menu.items.fruit_smoothie.desc'), img: Food1, price: '5.99', category: 'drinks' },
+  ];
+
+  // ⭐ 4. 分類按鈕也要翻譯
+  const categories = [
+    { id: 'all', name: t('menu.cat.all') },
+    { id: 'breakfast', name: t('menu.cat.breakfast') },
+    { id: 'lunch', name: t('menu.cat.lunch') },
+    { id: 'dinner', name: t('menu.cat.dinner') },
+    { id: 'desserts', name: t('menu.cat.desserts') },
+    { id: 'drinks', name: t('menu.cat.drinks') }
+  ]
+
   const filteredItems = activeCategory === 'all' 
     ? menuItems 
     : menuItems.filter(item => item.category === activeCategory);
 
   return (
     <div className="container mx-auto px-4 py-16 min-h-screen">
-      {/* Header Section */}
-      <motion.div
-        variants={SlideUp(0.1)}
-        initial="hidden"
-        whileInView="show"
-        className="text-center mb-12"
-      >
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 font-league">Our Menu</h1>
+      <motion.div variants={SlideUp(0.1)} initial="hidden" whileInView="show" className="text-center mb-12">
+        <h1 className="text-4xl md:text-5xl font-bold mb-4 font-league">{t('menu.title')}</h1>
         <div className="w-24 h-1 bg-gray-800 mx-auto mb-4"></div>
         <p className="text-gray-600 max-w-2xl mx-auto">
-          Explore our carefully crafted menu, featuring fresh ingredients 
-          and delicious combinations for every taste.
+          {t('menu.subtitle')}
         </p>
       </motion.div>
 
-      {/* Category Buttons */}
-      <motion.div
-        variants={SlideUp(0.2)}
-        initial="hidden"
-        whileInView="show"
-        className="flex flex-wrap justify-center gap-4 mb-16"
-      >
+      <motion.div variants={SlideUp(0.2)} initial="hidden" whileInView="show" className="flex flex-wrap justify-center gap-4 mb-16">
         {categories.map((category) => (
           <button
             key={category.id}
@@ -88,18 +72,10 @@ export default function Menu() {
         ))}
       </motion.div>
 
-      {/* ⭐ 這裡改用單一區域顯示篩選結果，並加上動畫 */}
-      <motion.div 
-        layout 
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
-      >
+      <motion.div layout className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
         <AnimatePresence mode='popLayout'>
             {filteredItems.length > 0 ? (
                 filteredItems.map((item) => (
-                    // 這裡我們直接展開 LatestDessert 的卡片結構，因為這樣比較好控制 Grid
-                    // 或者你可以繼續用 LatestDessert 但要確保它能接受陣列並正確排版
-                    // 為了排版穩定，建議直接在這裡渲染卡片：
-                    
                     <motion.div
                         layout
                         key={item.id}
@@ -130,10 +106,10 @@ export default function Menu() {
                         <div className='flex items-center justify-between mt-auto pt-4 border-t border-gray-100'>
                             <p className='text-2xl font-bold text-yellow-500'>${item.price}</p>
                             <a 
-                                href={`/order/${item.id}`} // 使用 a tag 或 Link 都可以
+                                href={`/order/${item.id}`} 
                                 className="bg-black text-white px-6 py-2 rounded-full font-bold text-sm hover:bg-gray-800 transition-colors"
                             >
-                                View Detail
+                                {t('menu.view')} {/* ⭐ 翻譯 View Detail */}
                             </a>
                         </div>
                     </motion.div>
@@ -144,7 +120,7 @@ export default function Menu() {
                     animate={{ opacity: 1 }}
                     className="col-span-full text-center py-20 text-gray-400"
                 >
-                    <p className="text-xl">No items found in this category.</p>
+                    <p className="text-xl">{t('menu.no_item')}</p>
                 </motion.div>
             )}
         </AnimatePresence>

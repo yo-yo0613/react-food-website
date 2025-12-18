@@ -7,9 +7,11 @@ import { updateProfile } from 'firebase/auth';
 import { motion } from 'framer-motion';
 import Notification from '../components/Notification/Notification';
 import { IoPerson, IoCall, IoLocation, IoMail, IoSave, IoCamera } from "react-icons/io5";
+import { useTranslation } from 'react-i18next'; // ⭐
 
 const Profile = () => {
   const { user } = useAuth();
+  const { t } = useTranslation(); // ⭐
   const [loading, setLoading] = useState(true);
   const [notify, setNotify] = useState({ isVisible: false, message: "" });
   
@@ -47,7 +49,7 @@ const Profile = () => {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        alert("圖片太大囉！請使用小於 2MB 的圖片。");
+        alert("Image size should be less than 2MB");
         return;
       }
       const reader = new FileReader();
@@ -71,15 +73,15 @@ const Profile = () => {
         photoURL: formData.photoURL
       });
       
-      setNotify({ isVisible: true, message: "個人資料更新成功！" });
+      setNotify({ isVisible: true, message: t('profile.success') }); // ⭐ 翻譯
       setTimeout(() => setNotify({ ...notify, isVisible: false }), 3000);
     } catch (error) {
       console.error("Save Error:", error);
-      alert("儲存失敗，請稍後再試");
+      alert("Error saving profile");
     }
   };
 
-  if (!user) return <div className="text-center py-20 text-xl font-bold">請先登入</div>;
+  if (!user) return <div className="text-center py-20 text-xl font-bold">{t('cart.login_alert')}</div>;
 
   return (
     <div className="container mx-auto px-4 py-16 min-h-[80vh] flex justify-center items-center">
@@ -91,7 +93,6 @@ const Profile = () => {
         transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
         className="bg-white w-full max-w-2xl rounded-3xl shadow-xl border border-gray-100 overflow-hidden"
       >
-        {/* Header with Image Upload */}
         <div className="bg-yellow-400 p-8 text-center relative">
             <motion.div 
                 initial={{ scale: 0 }}
@@ -128,13 +129,11 @@ const Profile = () => {
             <p className="text-yellow-900 opacity-80 font-poppins text-sm">{user.email}</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSave} className="p-8 md:p-12 space-y-6">
             
-            {/* Email (唯讀) */}
             <div className="group opacity-70">
                 <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <IoMail className="text-yellow-500"/> Email Account
+                    <IoMail className="text-yellow-500"/> {t('profile.email')}
                 </label>
                 <input 
                     type="text" 
@@ -144,59 +143,52 @@ const Profile = () => {
                 />
             </div>
 
-            {/* Username */}
             <motion.div whileFocus={{ scale: 1.01 }}>
                 <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <IoPerson className="text-yellow-500"/> Display Name
+                    <IoPerson className="text-yellow-500"/> {t('profile.name')}
                 </label>
                 <input 
                     type="text" 
                     name="username" 
                     value={formData.username} 
                     onChange={handleChange} 
-                    placeholder="Enter your name"
                     className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition font-poppins"
                 />
             </motion.div>
 
-            {/* Phone */}
             <motion.div whileFocus={{ scale: 1.01 }}>
                 <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <IoCall className="text-yellow-500"/> Phone Number
+                    <IoCall className="text-yellow-500"/> {t('profile.phone')}
                 </label>
                 <input 
                     type="tel" 
                     name="phone" 
                     value={formData.phone} 
                     onChange={handleChange} 
-                    placeholder="0912-345-678"
                     className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition font-poppins"
                 />
             </motion.div>
 
-            {/* Address */}
             <motion.div whileFocus={{ scale: 1.01 }}>
                 <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
-                    <IoLocation className="text-yellow-500"/> Delivery Address
+                    <IoLocation className="text-yellow-500"/> {t('profile.addr')}
                 </label>
                 <textarea 
                     name="address" 
                     value={formData.address} 
                     onChange={handleChange} 
-                    placeholder="請輸入外送地址..."
                     rows="3"
                     className="w-full p-4 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-transparent outline-none transition font-poppins resize-none"
                 />
             </motion.div>
 
-            {/* Save Button */}
             <motion.button 
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 className="w-full bg-dark text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition flex items-center justify-center gap-2 text-lg mt-4"
             >
-                <IoSave className="text-xl"/> Save Changes
+                <IoSave className="text-xl"/> {t('profile.save')}
             </motion.button>
 
         </form>
