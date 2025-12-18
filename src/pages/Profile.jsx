@@ -133,7 +133,7 @@ const Profile = () => {
             
             {/* Email (唯讀) */}
             <div className="group opacity-70">
-                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                     <IoMail className="text-yellow-500"/> Email Account
                 </label>
                 <input 
@@ -146,7 +146,7 @@ const Profile = () => {
 
             {/* Username */}
             <motion.div whileFocus={{ scale: 1.01 }}>
-                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                     <IoPerson className="text-yellow-500"/> Display Name
                 </label>
                 <input 
@@ -161,7 +161,7 @@ const Profile = () => {
 
             {/* Phone */}
             <motion.div whileFocus={{ scale: 1.01 }}>
-                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                     <IoCall className="text-yellow-500"/> Phone Number
                 </label>
                 <input 
@@ -176,7 +176,7 @@ const Profile = () => {
 
             {/* Address */}
             <motion.div whileFocus={{ scale: 1.01 }}>
-                <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                <label className="text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
                     <IoLocation className="text-yellow-500"/> Delivery Address
                 </label>
                 <textarea 
