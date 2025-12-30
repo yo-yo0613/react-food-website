@@ -14,7 +14,7 @@ export default function Menu() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await fetch('http://localhost:8080/api/products');
+        const response = await fetch('https://food-backend-ehke.onrender.com/api/products');
         const data = await response.json();
         setMenuItems(data); // 把後端回傳的 List<Product> 存進去
         setLoading(false);

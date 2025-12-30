@@ -105,7 +105,7 @@ export function CartProvider({ children }) {
 
         // --- A. 呼叫 Spring Boot 處理付款 ---
         console.log("正在呼叫 Spring Boot 結帳...", orderPayload);
-        const response = await fetch('http://localhost:8080/api/orders', {
+        const response = await fetch('https://food-backend-ehke.onrender.com/api/orders', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderPayload)

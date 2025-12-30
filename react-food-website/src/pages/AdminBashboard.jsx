@@ -34,7 +34,7 @@ const AdminDashboard = () => {
   // 讀取 Spring Boot
   const fetchSpringBootData = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/products');
+      const response = await fetch('https://food-backend-ehke.onrender.com/api/products');
       const data = await response.json();
       setProducts(data);
     } catch (error) {
@@ -78,7 +78,7 @@ const AdminDashboard = () => {
 
     try {
       // --- 動作 A: 傳送給 Spring Boot (為了讓 Menu 頁面看到) ---
-      const springResponse = await fetch('http://localhost:8080/api/products', {
+      const springResponse = await fetch('https://food-backend-ehke.onrender.com/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productPayload)
@@ -105,7 +105,7 @@ const AdminDashboard = () => {
     if (window.confirm("確定要刪除這個商品嗎？(目前僅刪除 Spring Boot 暫存)")) {
       try {
           // 刪除 Spring Boot
-          await fetch(`http://localhost:8080/api/products/${id}`, { method: 'DELETE' });
+          await fetch(`https://food-backend-ehke.onrender.com/api/products/${id}`, { method: 'DELETE' });
           
           // (進階) 如果要刪除 Firebase 對應資料，需要知道 Firebase 的 Key，這裡暫時先略過
           // 因為 Spring Boot 的 ID (1, 2, 3) 跟 Firebase 的 Key (-Njx...) 長得不一樣
