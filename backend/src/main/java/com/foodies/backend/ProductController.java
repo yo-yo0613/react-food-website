@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @RestController
 @RequestMapping("/api/products")
-@CrossOrigin(origins = "http://localhost:5173") // 允許 React 連線
+@CrossOrigin(origins = "*") // 允許 React 連線
 public class ProductController {
 
     // 1. 把 List 移到外面變成「成員變數」，這樣資料才會被保存下來 (直到你關閉程式)
