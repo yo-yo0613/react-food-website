@@ -47,9 +47,16 @@ const Cart = () => {
         detailsToSend = { ...cardInfo };
     }
 
-    await checkout(paymentMethod, detailsToSend);
-    showNotification(`${t('cart.sent')} (${paymentMethod})`); // ⭐ 翻譯
-    setTimeout(() => navigate('/'), 2000);
+    try {
+        // 呼叫 Context 的 checkout
+        await checkout(paymentMethod, detailsToSend);
+        
+        showNotification(`${t('cart.sent')} (${paymentMethod})`);
+        setTimeout(() => navigate('/'), 2000);
+    } catch (error) {
+        // 如果 Context 拋出錯誤 (例如後端沒開)，這裡會接住
+        console.error("結帳流程中斷");
+    }
   };
 
   if (cartItems.length === 0) {

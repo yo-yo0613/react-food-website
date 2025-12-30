@@ -1,12 +1,7 @@
-// src/contexts/CartContext.jsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthContext"; 
 import { db } from "../firebase/config"; 
 import { ref, set, onValue, remove, push, get } from "firebase/database";
-
-// 引入 Stripe (保留你的 Publishable Key)
-import { loadStripe } from "@stripe/stripe-js";
-const stripePromise = loadStripe("pk_test_51SeIyEPlWwyWz35kolNXt2Cyonymlx24PSzIIvu41SGPzLJHhq70EEriaz9oIBUyGmwDj88OVnogR5K8nBhDEIZt00XJHOLGRv");
 
 const CartContext = createContext();
 
@@ -18,7 +13,7 @@ export function CartProvider({ children }) {
   const [cartItems, setCartItems] = useState([]);
   const { user } = useAuth();
 
-  // 1. 監聽購物車 (從 Firebase 同步)
+  // 1. 監聽購物車 (保持不變)
   useEffect(() => {
     if (user) {
       const cartRef = ref(db, `carts/${user.uid}`);
@@ -37,132 +32,116 @@ export function CartProvider({ children }) {
     }
   }, [user]);
 
-  // 2. 加入購物車 (⭐⭐⭐ 關鍵修正：處理數量與圖片)
+  // 2. 加入購物車 (保持不變)
   const addToCart = async (product) => {
     if (!user) {
       alert("請先登入才能加入購物車！");
       return;
     }
-
-    // 取得要加入的數量 (如果沒傳，預設為 1)
     const quantityToAdd = product.quantity ? product.quantity : 1;
-    
-    // 統一圖片來源 (有些是 img, 有些是 image)
     const validImage = product.image || product.img || "";
-
     const cartRef = ref(db, `carts/${user.uid}/${product.id}`);
-    
-    // 先讀取舊資料，看是否已存在
     const snapshot = await get(cartRef);
     const existingItem = snapshot.val();
 
     if (existingItem) {
-      // 如果已存在，將舊數量 + 新增數量
       await set(cartRef, {
         ...existingItem,
         quantity: existingItem.quantity + quantityToAdd,
-        image: validImage // 確保圖片欄位更新
+        image: validImage
       });
     } else {
-      // 如果是新商品
       await set(cartRef, {
         id: product.id,
-        name: product.name || product.title, // 確保有名稱
+        name: product.name || product.title,
         price: product.price,
-        image: validImage, // 確保寫入 image 欄位
+        image: validImage,
         quantity: quantityToAdd
       });
     }
   };
 
-  // 3. 移除商品
+  // 3. 移除商品 (保持不變)
   const removeFromCart = async (productId) => {
     if (!user) return;
     const itemRef = ref(db, `carts/${user.uid}/${productId}`);
     await remove(itemRef);
   };
 
-  // 4. 清空購物車
+  // 4. 清空購物車 (保持不變)
   const clearCart = async () => {
     if (!user) return;
     const cartRef = ref(db, `carts/${user.uid}`);
     await remove(cartRef);
   }
 
-  // 5. 計算總金額與數量
+  // 5. 計算總金額
   const cartTotal = cartItems.reduce((total, item) => {
     return total + parseFloat(item.price) * item.quantity;
   }, 0);
 
   const cartCount = cartItems.reduce((count, item) => count + item.quantity, 0);
 
-  // 6. ⭐⭐⭐ 結帳邏輯 (含 Stripe 模擬) ⭐⭐⭐
+  // ⭐⭐⭐ 6. 結帳邏輯 (核心修改) ⭐⭐⭐
   const checkout = async (paymentMethod, paymentDetails = {}) => {
     if (!user || cartItems.length === 0) return;
 
     try {
-        let status = 'pending';
-        let transactionInfo = {};
-
-        // === A. 現金付款 ===
-        if (paymentMethod === 'Cash') {
-            status = 'pending_cash';
-        }
-
-        // === B. 信用卡付款 (Stripe) ===
-        else if (paymentMethod === 'Credit Card') {
-            // 注意：真實環境需要後端 API (Cloud Function)
-            // 為了讓你的專案現在能動，我們這裡做「模擬成功」
-            console.log("Processing Stripe Payment with:", paymentDetails);
-            
-            // 模擬 API 延遲
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            status = 'paid';
-            transactionInfo = { 
-                id: "stripe_mock_" + Date.now(), // 模擬交易 ID
-                last4: paymentDetails.number.slice(-4) 
-            };
-            
-            // 如果你有真的後端，請解開下面的註解並填入正確 URL
-            /*
-            const response = await fetch("YOUR_CLOUD_FUNCTION_URL", { ... });
-            const { clientSecret } = await response.json();
-            const stripe = await stripePromise;
-            const result = await stripe.confirmCardPayment(...)
-            if (result.error) throw new Error(result.error.message);
-            */
-        }
-
-        // === C. Line Pay ===
-        else if (paymentMethod === 'Line Pay') {
-             status = 'paid';
-             transactionInfo = { id: "LINE_" + Date.now() };
-        }
-
-        // === D. 寫入 Firebase 訂單 (Orders) ===
-        const orderData = {
+        // --- 準備要傳給後端的資料 ---
+        // 我們只傳必要的資訊，不傳敏感的信用卡號給 Spring Boot (模擬環境)
+        // 在真實環境中，信用卡資訊會直接傳給 Stripe，然後只把 Token 傳給後端
+        
+        const orderPayload = {
             userId: user.uid,
             userEmail: user.email,
-            items: cartItems,
             totalAmount: cartTotal,
             paymentMethod: paymentMethod,
-            paymentDetails: transactionInfo,
-            status: status,
+            items: cartItems.map(item => ({
+                name: item.name,
+                price: parseFloat(item.price),
+                quantity: item.quantity
+            }))
+        };
+
+        // --- A. 呼叫 Spring Boot 處理付款 ---
+        console.log("正在呼叫 Spring Boot 結帳...", orderPayload);
+        const response = await fetch('http://localhost:8080/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderPayload)
+        });
+
+        if (!response.ok) {
+            throw new Error("Spring Boot 結帳失敗");
+        }
+
+        const backendOrder = await response.json(); // 取得後端回應 (包含狀態 status)
+        console.log("Spring Boot 回應:", backendOrder);
+
+        // --- B. 寫入 Firebase (雙寫備份) ---
+        // 我們把 Spring Boot 回傳的狀態 (PAID/PENDING) 也存進去
+        const firebaseOrderData = {
+            ...orderPayload,
+            backendId: backendOrder.id, // 存下 Spring Boot 的 ID
+            status: backendOrder.status, // 存下 Spring Boot 判斷後的狀態
+            paymentDetails: { 
+                last4: paymentDetails.number ? paymentDetails.number.slice(-4) : null,
+                ...paymentDetails 
+            },
             createdAt: new Date().toISOString()
         };
 
         const ordersRef = ref(db, `orders`);
-        await push(ordersRef, orderData);
+        await push(ordersRef, firebaseOrderData);
 
-        // === E. 結帳成功，清空購物車 ===
+        // --- C. 清空購物車 ---
         await clearCart();
-
-        console.log("Order created successfully!");
+        return true;
 
     } catch (error) {
         console.error("Checkout Error:", error);
-        alert("結帳發生錯誤，請稍後再試。");
+        alert("結帳發生錯誤，請檢查後端是否開啟。");
+        throw error; // 讓 UI 知道失敗了
     }
   };
 
