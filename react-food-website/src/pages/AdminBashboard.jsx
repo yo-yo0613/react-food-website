@@ -1,37 +1,22 @@
-// src/pages/AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
+// ⭐ 1. 把 Firebase 加回來
 import { db } from '../firebase/config';
 import { ref, push, onValue, remove } from 'firebase/database';
 import { motion } from 'framer-motion';
 import { IoAdd, IoTrash, IoFastFood, IoStatsChart, IoImage } from "react-icons/io5";
 
-// Chart.js 設定
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
+  Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend,
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState('menu'); // 'menu' or 'stats'
-  const [products, setProducts] = useState([]);
-  const [orders, setOrders] = useState([]);
+  const [activeTab, setActiveTab] = useState('menu');
+  const [products, setProducts] = useState([]); // 這是顯示在列表上的資料 (來自 Spring Boot)
+  const [firebaseProducts, setFirebaseProducts] = useState([]); // 這是 Firebase 的資料 (用來對照)
   
-  // 新增商品的表單狀態
   const [newItem, setNewItem] = useState({
     name: '',
     price: '',
@@ -40,26 +25,33 @@ const AdminDashboard = () => {
     image: ''
   });
 
-  // 1. 讀取商品與訂單資料
+  // ⭐ 2. 同時監聽 Spring Boot 和 Firebase
   useEffect(() => {
-    // 讀取商品 (假設你的商品存在 'products' 節點，如果還沒改 Menu 頁面，這裡會是空的)
+    fetchSpringBootData(); // 載入 Spring Boot 資料
+    fetchFirebaseData();   // 載入 Firebase 資料 (備份用)
+  }, []);
+
+  // 讀取 Spring Boot
+  const fetchSpringBootData = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/products');
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error("Spring Boot 連線失敗:", error);
+    }
+  };
+
+  // 讀取 Firebase
+  const fetchFirebaseData = () => {
     const productsRef = ref(db, 'products');
     onValue(productsRef, (snapshot) => {
       const data = snapshot.val();
-      const loadedProducts = data ? Object.entries(data).map(([id, val]) => ({ id, ...val })) : [];
-      setProducts(loadedProducts);
+      const loadedProducts = data ? Object.entries(data).map(([key, val]) => ({ firebaseKey: key, ...val })) : [];
+      setFirebaseProducts(loadedProducts);
     });
+  };
 
-    // 讀取訂單 (用於報表)
-    const ordersRef = ref(db, 'orders');
-    onValue(ordersRef, (snapshot) => {
-      const data = snapshot.val();
-      const loadedOrders = data ? Object.values(data) : [];
-      setOrders(loadedOrders);
-    });
-  }, []);
-
-  // 2. 處理圖片上傳 (轉 Base64)
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -71,53 +63,69 @@ const AdminDashboard = () => {
     }
   };
 
-  // 3. 新增商品到 Firebase
+  // ⭐ 3. 新增商品 (雙寫：同時寫入 Java 和 Firebase)
   const handleAddProduct = async (e) => {
     e.preventDefault();
     if (!newItem.name || !newItem.price) return alert("請填寫完整資訊");
 
+    const productPayload = {
+        name: newItem.name,
+        price: parseFloat(newItem.price),
+        category: newItem.category,
+        description: newItem.description,
+        img: newItem.image
+    };
+
     try {
-      await push(ref(db, 'products'), {
-        ...newItem,
-        id: Date.now(), // 簡單 ID
-        price: parseFloat(newItem.price)
+      // --- 動作 A: 傳送給 Spring Boot (為了讓 Menu 頁面看到) ---
+      const springResponse = await fetch('http://localhost:8080/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(productPayload)
       });
-      alert("商品新增成功！");
-      setNewItem({ name: '', price: '', category: 'breakfast', description: '', image: '' }); // 重置表單
+
+      // --- 動作 B: 傳送給 Firebase (為了永久保存) ---
+      await push(ref(db, 'products'), productPayload);
+
+      if (springResponse.ok) {
+          alert("商品新增成功！(已同步至後端與 Firebase)");
+          setNewItem({ name: '', price: '', category: 'breakfast', description: '', image: '' });
+          fetchSpringBootData(); // 重新整理列表
+      } else {
+          alert("Spring Boot 新增失敗，但 Firebase 可能已儲存");
+      }
     } catch (error) {
       console.error(error);
-      alert("新增失敗");
+      alert("連線發生錯誤");
     }
   };
 
-  // 4. 刪除商品
+  // ⭐ 4. 刪除商品 (雖然目前 ID 對不上，我們先針對 Spring Boot 做刪除)
   const handleDeleteProduct = async (id) => {
-    if (window.confirm("確定要刪除這個商品嗎？")) {
-      await remove(ref(db, `products/${id}`));
+    if (window.confirm("確定要刪除這個商品嗎？(目前僅刪除 Spring Boot 暫存)")) {
+      try {
+          // 刪除 Spring Boot
+          await fetch(`http://localhost:8080/api/products/${id}`, { method: 'DELETE' });
+          
+          // (進階) 如果要刪除 Firebase 對應資料，需要知道 Firebase 的 Key，這裡暫時先略過
+          // 因為 Spring Boot 的 ID (1, 2, 3) 跟 Firebase 的 Key (-Njx...) 長得不一樣
+          
+          fetchSpringBootData(); // 重整
+      } catch (error) {
+          console.error("刪除失敗", error);
+      }
     }
   };
 
-  // 5. 計算圖表數據 (每日營收)
+  // 圖表數據 (假資料)
   const getChartData = () => {
-    const revenueByDate = {};
-
-    orders.forEach(order => {
-      // 假設 createdAt 是 ISO 字串，取前 10 碼 (YYYY-MM-DD)
-      const date = order.createdAt ? order.createdAt.substring(0, 10) : 'Unknown';
-      if (!revenueByDate[date]) revenueByDate[date] = 0;
-      revenueByDate[date] += order.totalAmount;
-    });
-
-    // 排序日期
-    const sortedDates = Object.keys(revenueByDate).sort();
-    
     return {
-      labels: sortedDates,
+      labels: ['2025-01-01', '2025-01-02', '2025-01-03'],
       datasets: [
         {
-          label: '每日營收 (Daily Revenue)',
-          data: sortedDates.map(date => revenueByDate[date]),
-          backgroundColor: 'rgba(250, 204, 21, 0.8)', // 黃色
+          label: '每日營收 (Mock Data)',
+          data: [120, 300, 150],
+          backgroundColor: 'rgba(250, 204, 21, 0.8)',
           borderColor: 'rgba(234, 179, 8, 1)',
           borderWidth: 1,
         },
@@ -127,36 +135,27 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex font-poppins">
-      {/* Sidebar */}
-      <div className="w-64 bg-dark text-white p-6 flex flex-col gap-6 fixed h-full">
+      <div className="w-64 bg-black text-white p-6 flex flex-col gap-6 fixed h-full z-10">
         <h2 className="text-3xl font-league text-yellow-400">Admin Panel</h2>
         <nav className="flex flex-col gap-4">
-          <button 
-            onClick={() => setActiveTab('menu')}
-            className={`flex items-center gap-3 p-3 rounded-xl transition ${activeTab === 'menu' ? 'bg-yellow-500 text-black font-bold' : 'hover:bg-gray-800'}`}
-          >
+          <button onClick={() => setActiveTab('menu')} className={`flex items-center gap-3 p-3 rounded-xl transition ${activeTab === 'menu' ? 'bg-yellow-500 text-black font-bold' : 'hover:bg-gray-800'}`}>
             <IoFastFood /> Menu Management
           </button>
-          <button 
-            onClick={() => setActiveTab('stats')}
-            className={`flex items-center gap-3 p-3 rounded-xl transition ${activeTab === 'stats' ? 'bg-yellow-500 text-black font-bold' : 'hover:bg-gray-800'}`}
-          >
+          <button onClick={() => setActiveTab('stats')} className={`flex items-center gap-3 p-3 rounded-xl transition ${activeTab === 'stats' ? 'bg-yellow-500 text-black font-bold' : 'hover:bg-gray-800'}`}>
             <IoStatsChart /> Sales Report
           </button>
         </nav>
       </div>
 
-      {/* Main Content */}
       <div className="ml-64 flex-1 p-10">
-        
-        {/* === 頁籤 1: 菜單管理 === */}
         {activeTab === 'menu' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <h1 className="text-3xl font-bold mb-8 text-gray-800">Add New Item</h1>
             
-            {/* 新增表單 */}
-            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 mb-10 flex gap-8">
+            {/* 新增區塊 */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 mb-10 flex flex-col md:flex-row gap-8">
               <div className="flex-1 space-y-4">
+                {/* ... 輸入框保持不變 ... */}
                 <div>
                   <label className="block text-sm font-bold text-gray-700 mb-1">Product Name</label>
                   <input type="text" value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} className="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-yellow-400" placeholder="e.g. Beef Burger"/>
@@ -181,8 +180,6 @@ const AdminDashboard = () => {
                   <label className="block text-sm font-bold text-gray-700 mb-1">Description</label>
                   <textarea value={newItem.description} onChange={e => setNewItem({...newItem, description: e.target.value})} className="w-full p-3 border rounded-xl bg-gray-50 outline-none focus:ring-2 focus:ring-yellow-400" rows="3" placeholder="Description..."/>
                 </div>
-                
-                {/* 圖片上傳 */}
                 <div>
                    <label className="block text-sm font-bold text-gray-700 mb-1">Image</label>
                    <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-xl cursor-pointer hover:bg-gray-200 transition w-fit">
@@ -190,30 +187,29 @@ const AdminDashboard = () => {
                       <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                    </label>
                 </div>
-
                 <button onClick={handleAddProduct} className="bg-black text-white px-8 py-3 rounded-xl font-bold hover:bg-gray-800 transition flex items-center gap-2">
-                  <IoAdd size={20}/> Add to Menu
+                  <IoAdd size={20}/> Add to Menu & Firebase
                 </button>
               </div>
 
-              {/* 預覽卡片 */}
-              <div className="w-1/3 flex flex-col items-center justify-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 p-4">
-                 <p className="text-gray-400 mb-4 text-sm">Preview</p>
-                 <div className="bg-white p-4 rounded-xl shadow-md w-full max-w-[250px]">
-                    <div className="h-32 w-full bg-gray-200 rounded-lg mb-3 overflow-hidden">
-                      {newItem.image ? <img src={newItem.image} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>}
-                    </div>
-                    <h3 className="font-bold text-lg">{newItem.name || "Product Name"}</h3>
-                    <p className="text-yellow-500 font-bold">${newItem.price || "0.00"}</p>
-                 </div>
+              {/* 預覽區塊 */}
+              <div className="w-full md:w-1/3 flex flex-col items-center justify-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-300 p-4">
+                  <p className="text-gray-400 mb-4 text-sm">Preview</p>
+                  <div className="bg-white p-4 rounded-xl shadow-md w-full max-w-[250px]">
+                     <div className="h-32 w-full bg-gray-200 rounded-lg mb-3 overflow-hidden">
+                       {newItem.image ? <img src={newItem.image} className="w-full h-full object-cover" alt="preview" /> : <div className="w-full h-full flex items-center justify-center text-gray-400">No Image</div>}
+                     </div>
+                     <h3 className="font-bold text-lg">{newItem.name || "Product Name"}</h3>
+                     <p className="text-yellow-500 font-bold">${newItem.price || "0.00"}</p>
+                  </div>
               </div>
             </div>
 
-            <h2 className="text-2xl font-bold mb-6 text-gray-800">Current Menu Items</h2>
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Current Items (In Spring Boot)</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {products.map(item => (
                 <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex gap-4 items-center">
-                  <img src={item.image} alt={item.name} className="w-20 h-20 rounded-xl object-cover bg-gray-100"/>
+                  <img src={item.img} alt={item.name} className="w-20 h-20 rounded-xl object-cover bg-gray-100"/>
                   <div className="flex-1">
                     <h4 className="font-bold text-gray-800">{item.name}</h4>
                     <p className="text-yellow-500 font-bold">${item.price}</p>
@@ -225,42 +221,30 @@ const AdminDashboard = () => {
                 </div>
               ))}
             </div>
+            
+            {/* 顯示 Firebase 裡的備份資料 (選用，讓你知道資料有進去) */}
+            <h2 className="text-xl font-bold mt-10 mb-4 text-gray-400">Firebase Backup Data ({firebaseProducts.length})</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 opacity-70">
+                {firebaseProducts.map(item => (
+                    <div key={item.firebaseKey} className="bg-gray-100 p-2 rounded text-xs text-gray-500">
+                        {item.name} (Saved in DB)
+                    </div>
+                ))}
+            </div>
+
           </motion.div>
         )}
 
-        {/* === 頁籤 2: 營收報表 === */}
         {activeTab === 'stats' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <h1 className="text-3xl font-bold mb-8 text-gray-800">Revenue Dashboard</h1>
-            
             <div className="bg-white p-8 rounded-3xl shadow-lg border border-gray-100 h-[500px]">
-               {orders.length > 0 ? (
-                 <Bar data={getChartData()} options={{ responsive: true, maintainAspectRatio: false }} />
-               ) : (
-                 <div className="h-full flex items-center justify-center text-gray-400">
-                    尚無訂單數據
-                 </div>
-               )}
-            </div>
-
-            <div className="mt-8 grid grid-cols-3 gap-6">
-               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                  <h3 className="text-gray-500 text-sm mb-2">Total Orders</h3>
-                  <p className="text-4xl font-bold text-dark">{orders.length}</p>
-               </div>
-               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                  <h3 className="text-gray-500 text-sm mb-2">Total Revenue</h3>
-                  <p className="text-4xl font-bold text-yellow-500">
-                    ${orders.reduce((acc, curr) => acc + curr.totalAmount, 0).toFixed(2)}
-                  </p>
-               </div>
+               <Bar data={getChartData()} options={{ responsive: true, maintainAspectRatio: false }} />
             </div>
           </motion.div>
         )}
-
       </div>
     </div>
   );
 };
-
 export default AdminDashboard;
