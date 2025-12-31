@@ -1,17 +1,16 @@
-// src/pages/Profile.jsx
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase/config';
-import { ref, set, onValue } from 'firebase/database';
+import { ref, set, update, onValue } from 'firebase/database'; // ⭐ 增加 update
 import { updateProfile } from 'firebase/auth'; 
 import { motion } from 'framer-motion';
 import Notification from '../components/Notification/Notification';
-import { IoPerson, IoCall, IoLocation, IoMail, IoSave, IoCamera } from "react-icons/io5";
-import { useTranslation } from 'react-i18next'; // ⭐
+import { IoPerson, IoCall, IoLocation, IoMail, IoSave, IoCamera, IoShieldCheckmark } from "react-icons/io5"; // ⭐ 增加 icon
+import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
   const { user } = useAuth();
-  const { t } = useTranslation(); // ⭐
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [notify, setNotify] = useState({ isVisible: false, message: "" });
   
@@ -19,7 +18,8 @@ const Profile = () => {
     username: '',
     phone: '',
     address: '',
-    photoURL: '' 
+    photoURL: '',
+    roleRequest: '' // ⭐ 新增：紀錄申請狀態
   });
 
   useEffect(() => {
@@ -32,7 +32,8 @@ const Profile = () => {
             username: data.username || user.displayName || '',
             phone: data.phone || '',
             address: data.address || '',
-            photoURL: data.photoURL || user.photoURL || ''
+            photoURL: data.photoURL || user.photoURL || '',
+            roleRequest: data.roleRequest || '' // ⭐ 讀取申請狀態
           });
         }
         setLoading(false);
@@ -66,20 +67,40 @@ const Profile = () => {
 
     try {
       const userRef = ref(db, `users/${user.uid}/profile`);
-      await set(userRef, formData);
+      // 更新資料，保留原有的 roleRequest
+      await update(userRef, {
+          username: formData.username,
+          phone: formData.phone,
+          address: formData.address,
+          photoURL: formData.photoURL
+      });
 
       await updateProfile(user, {
         displayName: formData.username,
         photoURL: formData.photoURL
       });
       
-      setNotify({ isVisible: true, message: t('profile.success') }); // ⭐ 翻譯
+      setNotify({ isVisible: true, message: t('profile.success') });
       setTimeout(() => setNotify({ ...notify, isVisible: false }), 3000);
     } catch (error) {
       console.error("Save Error:", error);
       alert("Error saving profile");
     }
   };
+
+  // ⭐ 新增：處理申請管理員邏輯
+  const handleApplyAdmin = async () => {
+      if(!user) return;
+      try {
+          const userRef = ref(db, `users/${user.uid}/profile`);
+          await update(userRef, { roleRequest: 'pending' }); // 設為 pending
+          setFormData(prev => ({ ...prev, roleRequest: 'pending' }));
+          setNotify({ isVisible: true, message: "Admin application sent!" });
+          setTimeout(() => setNotify({ ...notify, isVisible: false }), 3000);
+      } catch (error) {
+          console.error(error);
+      }
+  }
 
   if (!user) return <div className="text-center py-20 text-xl font-bold">{t('cart.login_alert')}</div>;
 
@@ -182,14 +203,31 @@ const Profile = () => {
                 />
             </motion.div>
 
-            <motion.button 
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="submit"
-                className="w-full bg-dark text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition flex items-center justify-center gap-2 text-lg mt-4"
-            >
-                <IoSave className="text-xl"/> {t('profile.save')}
-            </motion.button>
+            <div className="flex flex-col gap-3 mt-6">
+                <motion.button 
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    className="w-full bg-dark text-white font-bold py-4 rounded-xl shadow-lg hover:bg-black transition flex items-center justify-center gap-2 text-lg"
+                >
+                    <IoSave className="text-xl"/> {t('profile.save')}
+                </motion.button>
+
+                {/* ⭐ 申請管理員按鈕邏輯 */}
+                {formData.roleRequest === 'pending' ? (
+                    <button disabled className="w-full bg-gray-300 text-gray-600 font-bold py-3 rounded-xl cursor-not-allowed flex items-center justify-center gap-2">
+                        <IoShieldCheckmark/> Application Pending...
+                    </button>
+                ) : user.email !== "chengyouli37@gmail.com" && (
+                    <button 
+                        type="button"
+                        onClick={handleApplyAdmin}
+                        className="w-full border-2 border-yellow-400 text-yellow-600 font-bold py-3 rounded-xl hover:bg-yellow-50 transition flex items-center justify-center gap-2"
+                    >
+                        <IoShieldCheckmark/> Apply to be Admin
+                    </button>
+                )}
+            </div>
 
         </form>
       </motion.div>

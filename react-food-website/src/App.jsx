@@ -13,7 +13,7 @@ import Signup from './components/Auth/Signup';
 import ProductDetail from './pages/ProductDetail';
 import Cart from './pages/Cart';       // ⭐ 新增
 import Profile from './pages/Profile'; // ⭐ 新增
-import AdminDashboard from './pages/AdminBashboard';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (

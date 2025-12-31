@@ -1,0 +1,77 @@
+# -------------------
+# 1. 後端 (Spring Boot)
+# -------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  replicas: 1 # 要跑幾個後端實體
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        # 這裡填你上傳到 Docker Hub 的映像檔名稱
+        image: your-dockerhub-id/food-backend:latest 
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service # 這就是 Nginx 裡 proxy_pass 對應的名字
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 8080 # K8s 內部看到的 port
+      targetPort: 8080 # 容器實際開的 port
+  type: ClusterIP # 只在 K8s 內部通訊 (前端透過 Nginx 轉發)
+
+---
+# -------------------
+# 2. 前端 (React + Nginx)
+# -------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        # 這裡填你上傳到 Docker Hub 的映像檔名稱
+        image: your-dockerhub-id/food-frontend:latest 
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 30000 # 讓你在瀏覽器用 localhost:30000 看到網站
+  type: NodePort # 允許外部存取
