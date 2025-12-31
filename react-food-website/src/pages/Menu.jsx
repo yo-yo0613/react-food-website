@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { SlideUp } from '../components/Hero/Hero'
 import Banner from '../components/Banner/Banner'
 import { useTranslation } from 'react-i18next'; // 引入翻譯 Hook
+import { API_URL } from '../config';
 
 export default function Menu() {
   const [activeCategory, setActiveCategory] = useState('all')
@@ -13,7 +14,7 @@ export default function Menu() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const response = await fetch('https://food-backend-ehke.onrender.com/api/products');
+        const response = await fetch(`${API_URL}/api/products`);
         const data = await response.json();
         setMenuItems(data); 
         setLoading(false);

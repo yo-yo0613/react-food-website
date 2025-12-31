@@ -11,6 +11,7 @@ import {
   IoMenu, IoClose, IoHome, IoFastFood, IoStatsChart, IoLogOut, 
   IoTrendingUp, IoWallet, IoBagHandle, IoAdd, IoTrash, IoCloudUpload
 } from "react-icons/io5";
+import { API_URL } from '../config';
 
 // --- 側邊欄組件 (樣式優化) ---
 const Sidebar = ({ isOpen, toggleSidebar, activeTab, setActiveTab, handleLogout }) => (
@@ -97,7 +98,7 @@ const AdminDashboard = () => {
 
   const fetchProducts = async () => {
       try {
-          const res = await fetch('https://food-backend-ehke.onrender.com/api/products');
+          const res = await fetch(`${API_URL}/api/products`);
           const data = await res.json();
           setProducts(data);
       } catch (error) {
@@ -134,7 +135,7 @@ const AdminDashboard = () => {
       e.preventDefault();
       setIsSubmitting(true);
       try {
-          const res = await fetch('https://food-backend-ehke.onrender.com/api/products', {
+          const res = await fetch(`${API_URL}/api/products`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -161,7 +162,7 @@ const AdminDashboard = () => {
   const handleDeleteProduct = async (id) => {
       if(!window.confirm("Are you sure you want to delete this item?")) return;
       try {
-          await fetch(`https://food-backend-ehke.onrender.com/api/products/${id}`, { method: 'DELETE' });
+          await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
           fetchProducts();
       } catch (error) {
           console.error("Error deleting product:", error);

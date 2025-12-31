@@ -8,6 +8,8 @@ import { db } from '../firebase/config';
 import { ref, push } from "firebase/database";
 import { useAuth } from '../contexts/AuthContext';
 
+import { API_URL } from '../config';
+
 const contactCards = [
   {
     id: 1,
@@ -73,7 +75,7 @@ function About() {
 
     try {
       // 1. 傳送給 Spring Boot (Render)
-      const springResponse = await fetch('https://food-backend-ehke.onrender.com/api/messages', {
+      const springResponse = await fetch(`${API_URL}/api/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(messageData)
