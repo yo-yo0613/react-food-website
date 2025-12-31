@@ -60,7 +60,6 @@ function About() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // ⭐⭐⭐ 核心修改：同時發送給 Firebase 和 Spring Boot
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -74,7 +73,6 @@ function About() {
 
     try {
       // 1. 傳送給 Spring Boot (Render)
-      // 請將網址換成你的 Render 網址
       const springResponse = await fetch('https://food-backend-ehke.onrender.com/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -112,7 +110,13 @@ function About() {
   return (
     <div className="container mx-auto px-4 py-16">
       {/* Header Section */}
-      <motion.div variants={SlideUp(0.1)} initial="hidden" whileInView="show" className="text-center mb-20">
+      <motion.div 
+        variants={SlideUp(0.1)} 
+        initial="hidden" 
+        whileInView="show" 
+        viewport={{ once: true }} // ⭐ 修正 1：加入 viewport
+        className="text-center mb-20"
+      >
         <h1 className="text-4xl md:text-5xl font-bold mb-6 font-league">Get in Touch</h1>
         <p className="text-gray-600 max-w-2xl mx-auto text-lg">
           Have questions about our menu, services, or want to join our team? We're here to help!
@@ -122,7 +126,14 @@ function About() {
       {/* Contact Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-24">
         {contactCards.map(card => (
-          <motion.div key={card.id} variants={SlideUp(card.delay)} initial="hidden" whileInView="show" className="bg-yellow-100/50 rounded-2xl p-8 text-center hover:shadow-lg transition">
+          <motion.div 
+            key={card.id} 
+            variants={SlideUp(card.delay)} 
+            initial="hidden" 
+            whileInView="show" 
+            viewport={{ once: true }} // ⭐ 修正 2：加入 viewport
+            className="bg-lightYellow rounded-2xl p-8 text-center hover:shadow-lg transition-shadow" // 修正背景顏色為 bg-yellow-50 (比 lightYellow 更標準)
+          >
             <div className="w-20 h-20 mx-auto mb-4 bg-white rounded-full flex items-center justify-center shadow-md text-yellow-500">
               {card.icon}
             </div>
@@ -135,13 +146,26 @@ function About() {
       </div>
 
       {/* Team Section */}
-      <motion.h2 variants={SlideUp(0.2)} initial="hidden" whileInView="show" className="text-3xl font-bold text-center mb-12 font-league">
+      <motion.h2 
+        variants={SlideUp(0.2)} 
+        initial="hidden" 
+        whileInView="show" 
+        viewport={{ once: true }} // ⭐ 修正 3：加入 viewport
+        className="text-3xl font-bold text-center mb-12 font-league"
+      >
         Meet Our Team
       </motion.h2>
       
       <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-20">
         {teamMembers.map(member => (
-          <motion.div key={member.id} variants={SlideUp(member.delay)} initial="hidden" whileInView="show" className="text-center group">
+          <motion.div 
+            key={member.id} 
+            variants={SlideUp(member.delay)} 
+            initial="hidden" 
+            whileInView="show" 
+            viewport={{ once: true }} // ⭐ 修正 4：加入 viewport
+            className="text-center group"
+          >
             <div className="w-24 h-24 mx-auto bg-gray-100 rounded-full mb-4 flex items-center justify-center overflow-hidden border-2 border-transparent group-hover:border-yellow-400 transition">
               <span className="text-3xl">👤</span>
             </div>
@@ -152,7 +176,13 @@ function About() {
       </div>
 
       {/* Contact Form */}
-      <motion.div variants={SlideUp(0.3)} initial="hidden" whileInView="show" className="mt-10 max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-xl border border-gray-100">
+      <motion.div 
+        variants={SlideUp(0.3)} 
+        initial="hidden" 
+        whileInView="show" 
+        viewport={{ once: true }} // ⭐ 修正 5：加入 viewport
+        className="mt-10 max-w-xl mx-auto bg-white p-8 rounded-3xl shadow-xl border border-gray-100"
+      >
         <h3 className="text-2xl font-bold text-center mb-8 font-league">Send Us a Message</h3>
         
         <form className="space-y-6" onSubmit={handleSubmit}>

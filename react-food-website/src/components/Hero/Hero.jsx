@@ -78,7 +78,7 @@ function Hero() {
                         initial="hidden"
                         whileInView="show"
                         onClick={() => navigate(`/order/1`)} 
-                        className='btn-primary inline-block !mt-10'>
+                        className='btn-primary inline-block !mt-10 transition-shadow'>
                         <IoCartOutline className='inline mr-2'/>
                         Order Now
                     </motion.button>

@@ -58,6 +58,7 @@ function PopularRecipe() {
                         variants={SlideUp(item.delay)} // 這裡可以套用你的 SlideUp 讓卡片也有進場動畫
                         initial="hidden"
                         whileInView="show"
+                        viewport={{ once: true }}
                         className='group space-y-3 text-center 
                         bg-white/50 shadow-xl p-3 rounded-xl'>
                             <img 

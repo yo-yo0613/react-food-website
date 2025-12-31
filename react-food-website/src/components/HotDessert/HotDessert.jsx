@@ -39,6 +39,7 @@ function HotDessert() {
             variants={SlideUp(0)}
             initial="hidden"
             whileInView="show"
+            viewport={{ once: true }}
             className='text-2xl font-semibold 
             text-darkGreen uppercase py-8'>
                 Hot Dessert
