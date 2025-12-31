@@ -1,142 +1,80 @@
-// src/pages/ProductDetail.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaStar, FaArrowLeft, FaMinus, FaPlus } from 'react-icons/fa';
-import { useCart } from '../contexts/CartContext'; // 確保路徑正確
-import Notification from '../components/Notification/Notification'; // 引入通知元件
+import { useCart } from '../contexts/CartContext';
+import Notification from '../components/Notification/Notification';
+import { useTranslation } from 'react-i18next'; // ⭐ 引入翻譯 Hook
 
 // 圖片引入
 import Food1 from "../assets/food/food.png";
 import Food2 from "../assets/food/food2-plate.png";
 import Food3 from "../assets/food/banner.png";
+import Drink1 from "../assets/food/drink1.png";
+import Drink2 from "../assets/food/drink2.png";
+import Drink3 from "../assets/food/drink3.png";
+import Dessert1 from "../assets/food/dessert1.png";
+import Dessert2 from "../assets/food/dessert2.png";
+import Dessert3 from "../assets/food/dessert3.png";
+import Dessert4 from "../assets/food/dessert4.png";
+import Dinner1 from "../assets/food/dinner1.png";
+import Dinner2 from "../assets/food/dinner2.png";
+import Dinner3 from "../assets/food/dinner3.png";
+import Dinner4 from "../assets/food/dinner4.png";
+import Lunch1 from "../assets/food/lunch1.png";
+import Lunch2 from "../assets/food/lunch2.png";
+import Lunch3 from "../assets/food/lunch3.png";
+import Breakfast1 from "../assets/food/breakfast1.png";
+import Breakfast2 from "../assets/food/breakfast2.png";
+import Breakfast3 from "../assets/food/breakfast3.png";
+import Breakfast4 from "../assets/food/breakfast4.png";
 
 const ProductDetail = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { addToCart } = useCart(); // 取得 Context 方法
+  const { addToCart } = useCart();
+  const { t } = useTranslation(); // ⭐ 使用翻譯 Hook
   
-  // 商品資料
+  // ⭐ 簡化後的資料陣列：只保留不隨語言改變的屬性 (圖片、價格、評分、ID)
+  // 標題和描述我們會用 i18n 動態抓取
   const productsData = [
-    {
-      id: 1,
-      title: "HodDessert",
-      price: 5.99,
-      description: "這是一款經典的 HodDessert，搭配新鮮的蔬菜與獨特醬料，口感層次豐富，是下午茶的最佳選擇。",
-      image: Food1, 
-      rating: 4.8,
-      reviews: 120
-    },
-    {
-      id: 2,
-      title: "HodCake (Salad)",
-      price: 5.00,
-      description: "健康輕食首選！滿滿的綠色蔬菜搭配清爽油醋醬，低卡又美味。",
-      image: Food2, 
-      rating: 4.5,
-      reviews: 85
-    },
-    {
-      id: 3,
-      title: "HodCake (Special)",
-      price: 5.00,
-      description: "主廚特製的 HodCake，外酥內軟，每一口都能吃到濃郁的香氣。",
-      image: Food3, 
-      rating: 4.9,
-      reviews: 230
-    },
-    {
-      id: 4,
-      title: "Breakfast Special",
-      price: 12.99,
-      description: "Fresh eggs, bacon, toast, and seasonal fruits",
-      image: Food1,
-      rating: 4.6,
-      reviews: 95
-    },
-    {
-      id: 5,
-      title: "Lunch Combo",
-      price: 15.99,
-      description: "Grilled chicken with fresh salad and soup",
-      image: Food2,
-      rating: 4.7,
-      reviews: 110
-    },
-    {
-      id: 6,
-      title: "Dinner Delight",
-      price: 24.99,
-      description: "Premium steak with roasted vegetables",
-      image: Food3,
-      rating: 4.9,
-      reviews: 150
-    },
-    {
-      id: 7,
-      title: "Sweet Pancakes",
-      price: 9.99,
-      description: "Fluffy pancakes with maple syrup",
-      image: Food1,
-      rating: 4.4,
-      reviews: 70
-    },
-    {
-      id: 8,
-      title: "Fresh Salad",
-      price: 8.99,
-      description: "Mixed greens with house dressing",
-      image: Food2,
-      rating: 4.3,
-      reviews: 60
-    },
-    {
-      id: 9,
-      title: "HodDessert Deluxe",
-      price: 7.99,
-      description: "升級版 HodDessert，加入更多配料與特製醬料，帶來更豐富的味覺享受。",
-      image: Food3,
-      rating: 4.9,
-      reviews: 180
-    },
-    {
-      id: 10,
-      title: "Gourmet HodCake",
-      price: 6.50,
-      description: "精選食材製作的 HodCake，口感細膩，適合喜愛高品質料理的您。",
-      image: Food1,
-      rating: 4.8,
-      reviews: 140
-    },
-    {
-      id: 11,
-      title: "Vegan HodDessert",
-      price: 5.49,
-      description: "專為素食者設計的 HodDessert，使用新鮮蔬菜與植物性醬料，健康又美味。",
-      image: Food2,
-      rating: 4.5,
-      reviews: 90
-    },
-    {
-      id: 12,
-      title: "HodCake with a Twist",
-      price: 6.00,
-      description: "創新口味的 HodCake，融合多種風味，帶來前所未有的美食體驗。",
-      image: Food3,
-      rating: 4.7,
-      reviews: 130
-    }
+    // Breakfast
+    { id: 1, price: 12.99, image: Food1, rating: 4.8, reviews: 120 },
+    { id: 2, price: 9.99, image: Breakfast1, rating: 4.5, reviews: 85 },
+    { id: 3, price: 8.50, image: Breakfast2, rating: 4.6, reviews: 92 },
+    { id: 4, price: 7.99, image: Breakfast3, rating: 4.4, reviews: 60 },
+    { id: 5, price: 10.50, image: Breakfast4, rating: 4.7, reviews: 110 },
+    // Lunch
+    { id: 6, price: 15.99, image: Food2, rating: 4.9, reviews: 150 },
+    { id: 7, price: 8.99, image: Lunch1, rating: 4.3, reviews: 75 },
+    { id: 8, price: 11.50, image: Lunch2, rating: 4.6, reviews: 98 },
+    { id: 9, price: 9.50, image: Lunch3, rating: 4.5, reviews: 80 },
+    { id: 10, price: 13.99, image: Dessert2, rating: 4.8, reviews: 130 }, // 依照你原本的圖片設定
+    // Dinner
+    { id: 11, price: 24.99, image: Food3, rating: 4.9, reviews: 200 },
+    { id: 12, price: 18.99, image: Dinner1, rating: 4.7, reviews: 145 },
+    { id: 13, price: 21.50, image: Dinner2, rating: 4.8, reviews: 170 },
+    { id: 14, price: 22.99, image: Dinner3, rating: 4.9, reviews: 190 },
+    { id: 15, price: 16.50, image: Dinner4, rating: 4.6, reviews: 115 },
+    // Desserts
+    { id: 16, price: 5.99, image: Dessert1, rating: 4.8, reviews: 220 },
+    { id: 17, price: 6.50, image: Dessert4, rating: 4.9, reviews: 300 },
+    { id: 18, price: 5.50, image: Dessert3, rating: 4.5, reviews: 90 },
+    // Drinks
+    { id: 19, price: 4.99, image: Drink1, rating: 4.7, reviews: 160 },
+    { id: 20, price: 3.99, image: Drink2, rating: 4.6, reviews: 140 },
+    { id: 21, price: 2.99, image: Drink3, rating: 4.4, reviews: 88 }
   ];
 
   const [product, setProduct] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [showNotify, setShowNotify] = useState(false); // 控制通知顯示
+  const [showNotify, setShowNotify] = useState(false);
 
   useEffect(() => {
     const foundProduct = productsData.find((p) => p.id === parseInt(id));
     if (foundProduct) {
       setProduct(foundProduct);
     } else {
-      navigate('/'); 
+      console.warn("Product not found");
     }
   }, [id, navigate]);
 
@@ -145,16 +83,15 @@ const ProductDetail = () => {
     if (type === 'plus') setQuantity(quantity + 1);
   };
 
-  // 加入購物車邏輯
   const handleAddToCart = () => {
-    // 傳送商品資訊與數量給 Context
-    // 注意：這裡假設你的 Context 能夠處理 { ...item, quantity } 的格式
-    addToCart({ ...product, quantity: quantity });
-    
-    // 顯示通知
+    // ⭐ 加入購物車時，抓取當前語言的標題存入 Context
+    // 這樣購物車那邊顯示的就會是當下的語言
+    addToCart({ 
+        ...product, 
+        title: t(`products.${product.id}.title`), 
+        quantity: quantity 
+    });
     setShowNotify(true);
-    
-    // 2秒後自動關閉
     setTimeout(() => {
       setShowNotify(false);
     }, 2000);
@@ -164,61 +101,60 @@ const ProductDetail = () => {
     return <div className="h-screen flex justify-center items-center text-2xl">Loading...</div>;
   }
 
+  // ⭐ 動態取得翻譯內容
+  const translatedTitle = t(`products.${product.id}.title`);
+  const translatedDesc = t(`products.${product.id}.desc`);
+
   return (
     <div className="container mx-auto px-4 py-8 mt-20 relative min-h-[60vh] pb-20"> 
-      
-      {/* 通知元件掛載 */}
       <Notification 
-        message={`已將 ${quantity} 份 ${product.title} 加入購物車`} 
+        // ⭐ 通知訊息也翻譯
+        message={`${t('detail.added')} ${quantity} x ${translatedTitle}`} 
         isVisible={showNotify} 
       />
 
-      {/* 頂部返回按鈕 */}
       <button 
         onClick={() => navigate(-1)} 
         className="flex items-center text-gray-600 hover:text-black mb-6 transition-colors font-medium"
       >
         <FaArrowLeft className="mr-2" /> 
-        返回菜單
+        {t('detail.back')} {/* ⭐ 翻譯 "Back to Menu" */}
       </button>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-        
         {/* 左側：圖片區 */}
         <div className="w-full h-[400px] bg-yellow-100/30 rounded-3xl flex justify-center items-center shadow-sm relative group">
           <img 
             src={product.image} 
-            alt={product.title} 
+            alt={translatedTitle} 
             className="w-[65%] md:w-[75%] object-contain drop-shadow-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 animate-spin-slow"
           />
         </div>
 
         {/* 右側：資訊區 */}
         <div className="flex flex-col justify-start space-y-6">
-          
           <div>
-            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-2 font-league">{product.title}</h1>
+            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-2 font-league">{translatedTitle}</h1>
             <div className="flex items-center space-x-3 mb-4">
               <div className="flex text-yellow-400 text-lg">
                 {[...Array(5)].map((_, i) => (
                    <FaStar key={i} className={i < Math.floor(product.rating) ? "text-yellow-400" : "text-gray-200"} />
                 ))}
               </div>
-              <span className="text-gray-400 text-sm font-medium">({product.reviews} 評論)</span>
+              <span className="text-gray-400 text-sm font-medium">({product.reviews} {t('detail.reviews')})</span>
             </div>
             <p className="text-3xl font-bold text-yellow-500">${product.price}</p>
           </div>
 
           <div className="bg-white border border-gray-100 p-5 rounded-2xl shadow-sm">
-            <h3 className="font-bold mb-2 text-gray-800">關於這道料理</h3>
+            <h3 className="font-bold mb-2 text-gray-800">{t('detail.about')}</h3>
             <p className="text-gray-600 leading-relaxed text-sm md:text-base">
-              {product.description}
+              {translatedDesc}
             </p>
           </div>
 
           {/* 底部操作區 */}
           <div className="flex items-center space-x-4 pt-4">
-            {/* 數量選擇器 */}
             <div className="flex items-center bg-gray-100 rounded-full p-1">
               <button 
                 onClick={() => handleQuantityChange('minus')}
@@ -235,12 +171,11 @@ const ProductDetail = () => {
               </button>
             </div>
 
-            {/* Order Now 按鈕 */}
             <button 
               className="flex-1 bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 px-8 rounded-full shadow-lg shadow-yellow-400/30 hover:shadow-xl hover:shadow-yellow-400/40 transition-all transform hover:-translate-y-1 active:scale-95"
               onClick={handleAddToCart}
             >
-              Order Now
+              {t('detail.order')}
             </button>
           </div>
         </div>

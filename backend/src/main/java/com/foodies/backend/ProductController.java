@@ -9,69 +9,69 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @RestController
 @RequestMapping("/api/products")
-@CrossOrigin(origins = "*") // 允許 React 連線
+@CrossOrigin(origins = "*") // 允許所有來源連線
 public class ProductController {
 
-    // 1. 把 List 移到外面變成「成員變數」，這樣資料才會被保存下來 (直到你關閉程式)
     private List<Product> products = new ArrayList<>();
-    // 用來產生唯一的 ID
     private final AtomicLong counter = new AtomicLong();
 
-    // 建構子：程式啟動時先塞入預設資料
     public ProductController() {
         initData();
     }
 
+    // ⭐ 這裡產生 21 筆資料，順序與內容必須跟前端 ProductDetail 一樣 ⭐
     private void initData() {
-        products.add(new Product(counter.incrementAndGet(), "Breakfast Special", "Fresh eggs, bacon, toast...", "/images/food1.png", 12.99, "breakfast"));
-        products.add(new Product(counter.incrementAndGet(), "Lunch Combo", "Grilled chicken salad...", "/images/food2.png", 15.99, "lunch"));
-        products.add(new Product(counter.incrementAndGet(), "Dinner Delight", "Premium steak...", "/images/food3.png", 24.99, "dinner"));
-        products.add(new Product(counter.incrementAndGet(), "Sweet Pancakes", "Fluffy pancakes...", "/images/food1.png", 9.99, "breakfast"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/drink1.png",1.13,"drinks"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/drink2.png",2.50,"drinks"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/lunch1.png",23.75,"lunch"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/lunch2.png",45.00,"lunch"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/lunch3.png",67.89,"lunch"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/dinner1.png",34.56,"dinner"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/dinner2.png",78.90,"dinner"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/dinner3.png",90.12,"dinner"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/dinner4.png",30.10,"dinner"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/dessert1.png",11.11,"desserts"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/dessert2.png",22.22,"desserts"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/dessert3.png",33.33,"desserts"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/dessert4.png",44.44,"desserts"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/breakfast1.png",55.55,"breakfast"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/breakfast2.png",66.66,"breakfast"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/breakfast3.png",77.77,"breakfast"));
-        products.add(new Product(counter.incrementAndGet(), "","","/images/breakfast4.png",88.88,"breakfast"));
+        // --- Breakfast (5 items) ---
+        products.add(new Product(counter.incrementAndGet(), "Breakfast Special", "Fresh eggs, bacon, toast, and seasonal fruits.", "/images/food1.png", 12.99, "breakfast"));
+        products.add(new Product(counter.incrementAndGet(), "Sweet Pancakes", "Fluffy pancakes served with honey and fresh berries.", "/images/breakfast1.png", 9.99, "breakfast"));
+        products.add(new Product(counter.incrementAndGet(), "French Toast", "Classic french toast with powdered sugar and syrup.", "/images/breakfast2.png", 8.50, "breakfast"));
+        products.add(new Product(counter.incrementAndGet(), "Morning Bagel", "Toasted bagel with cream cheese and smoked salmon.", "/images/breakfast3.png", 7.99, "breakfast"));
+        products.add(new Product(counter.incrementAndGet(), "Omelette Delight", "Three-egg omelette with cheese, ham, and peppers.", "/images/breakfast4.png", 10.50, "breakfast"));
+
+        // --- Lunch (5 items) ---
+        products.add(new Product(counter.incrementAndGet(), "Lunch Combo", "Grilled chicken salad served with daily soup.", "/images/food2.png", 15.99, "lunch"));
+        products.add(new Product(counter.incrementAndGet(), "Fresh Salad", "Mixed greens with organic vegetables and house dressing.", "/images/lunch1.png", 8.99, "lunch"));
+        products.add(new Product(counter.incrementAndGet(), "Club Sandwich", "Triple-decker sandwich with turkey, bacon, and lettuce.", "/images/lunch2.png", 11.50, "lunch"));
+        products.add(new Product(counter.incrementAndGet(), "Vegan Wrap", "Tortilla wrap filled with hummus, avocado, and veggies.", "/images/lunch3.png", 9.50, "lunch"));
+        products.add(new Product(counter.incrementAndGet(), "Chicken Pesto", "Grilled chicken breast with basil pesto sauce.", "/images/dessert2.png", 13.99, "lunch"));
+
+        // --- Dinner (5 items) ---
+        products.add(new Product(counter.incrementAndGet(), "Dinner Delight", "Premium steak cooked to perfection with roasted veggies.", "/images/food3.png", 24.99, "dinner"));
+        products.add(new Product(counter.incrementAndGet(), "Seafood Pasta", "Creamy alfredo pasta with shrimp and scallops.", "/images/dinner1.png", 18.99, "dinner"));
+        products.add(new Product(counter.incrementAndGet(), "BBQ Ribs", "Slow-cooked pork ribs with homemade BBQ sauce.", "/images/dinner2.png", 21.50, "dinner"));
+        products.add(new Product(counter.incrementAndGet(), "Grilled Salmon", "Fresh salmon fillet with lemon butter glaze.", "/images/dinner3.png", 22.99, "dinner"));
+        products.add(new Product(counter.incrementAndGet(), "Mushroom Risotto", "Italian rice dish cooked with wild mushrooms and parmesan.", "/images/dinner4.png", 16.50, "dinner"));
+
+        // --- Desserts (3 items) ---
+        products.add(new Product(counter.incrementAndGet(), "HodDessert", "Our signature dessert with fresh cream and fruits.", "/images/dessert1.png", 5.99, "desserts"));
+        products.add(new Product(counter.incrementAndGet(), "Chocolate Cake", "Rich and moist chocolate cake with ganache.", "/images/dessert4.png", 6.50, "desserts"));
+        products.add(new Product(counter.incrementAndGet(), "Lemon Tart", "Zesty lemon curd in a buttery pastry shell.", "/images/dessert3.png", 5.50, "desserts"));
+
+        // --- Drinks (3 items) ---
+        products.add(new Product(counter.incrementAndGet(), "Fruit Smoothie", "Blend of mango, strawberry, and banana.", "/images/drink1.png", 4.99, "drinks"));
+        products.add(new Product(counter.incrementAndGet(), "Iced Coffee", "Cold brew coffee with a splash of milk.", "/images/drink2.png", 3.99, "drinks"));
+        products.add(new Product(counter.incrementAndGet(), "Green Tea", "Premium Japanese matcha green tea.", "/images/drink3.png", 2.99, "drinks"));
     }
 
     // --- API 區塊 ---
 
-    // 1. 取得所有商品 (GET)
     @GetMapping
     public List<Product> getAllProducts() {
         return products;
     }
 
-    // 2. 新增商品 (POST)
     @PostMapping
     public Product createProduct(@RequestBody Product product) {
-        // 設定新的 ID
         product.setId(counter.incrementAndGet());
-        // 如果前端沒有傳圖片，給預設圖
         if (product.getImg() == null || product.getImg().isEmpty()) {
             product.setImg("/images/food1.png");
         }
-        // 加入列表
         products.add(product);
         return product;
     }
 
-    // 3. 刪除商品 (DELETE)
     @DeleteMapping("/{id}")
     public void deleteProduct(@PathVariable Long id) {
-        // 使用 removeIf 移除 ID 符合的商品
         products.removeIf(p -> p.getId().equals(id));
     }
 }
