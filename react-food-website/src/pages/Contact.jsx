@@ -125,12 +125,14 @@ function Contact() {
         // 動作 1：傳送給 Spring Boot API (PostgreSQL)
         // 使用你的 API_URL 設定
         // -----------------------------------------------------
-        const postgresPromise = fetch(`${API_URL}/api/contact`, {
+        const postgresPromise = fetch('http://localhost:8080/api/contact', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(messageData)
         }).then(async res => {
-            if (!res.ok) throw new Error('PostgreSQL API Error');
+            if (!res.ok) {
+                throw new Error('PostgreSQL API Error');
+            }
             return res.json();
         });
 
