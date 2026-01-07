@@ -1,3 +1,5 @@
+// src/pages/Contact.jsx
+
 import React, { useState, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { 
@@ -7,12 +9,15 @@ import {
   IoRestaurantOutline, IoCardOutline, IoHelpCircleOutline
 } from 'react-icons/io5'
 
-// ⭐ 1. Import Firebase
+// ⭐ 1. Import Config (你的 API 網址設定)
+import { API_URL } from '../config';
+
+// ⭐ 2. Import Firebase
 import { db } from '../firebase/config'
-import { ref, push, set } from 'firebase/database'
+import { ref, push } from 'firebase/database'
 import { useAuth } from '../contexts/AuthContext'
 
-// ⭐ 2. Import Map Components
+// ⭐ 3. Import Map Components
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
@@ -31,13 +36,13 @@ L.Icon.Default.mergeOptions({
 
 // Custom Icon for Branches
 const branchIcon = new L.Icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', // Restaurant pin icon
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png', 
     iconSize: [40, 40],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40]
 });
 
-// ⭐ 3. Define Branch Locations
+// Branch Data
 const branches = [
     { id: 1, name: "Main Branch (Downtown)", lat: 40.7128, lng: -74.0060, address: "123 Main St, New York, NY" },
     { id: 2, name: "Uptown Branch", lat: 40.7580, lng: -73.9855, address: "456 Uptown Ave, New York, NY" },
@@ -90,7 +95,7 @@ function Contact() {
     setErrors(prev => ({ ...prev, [name]: undefined }))
   }
 
-  // ⭐ 4. Handle Real Firebase Submission
+  // ⭐ ⭐ ⭐ 修改後的核心提交邏輯 ⭐ ⭐ ⭐
   const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = validate()
@@ -107,35 +112,62 @@ function Contact() {
     setIsSubmitting(true);
 
     try {
-        // Save to a NEW collection: contact_messages
-        const msgRef = ref(db, 'contact_messages');
-        await push(msgRef, {
-            ...form,
-            userId: user ? user.uid : 'guest',
-            createdAt: new Date().toISOString(),
-            status: 'unread' // Useful for admin panel
+        // 準備要傳送的資料
+        const messageData = {
+            name: form.name,
+            email: form.email,
+            subject: form.subject,
+            message: form.message,
+            userId: user ? user.uid : 'guest'
+        };
+
+        // -----------------------------------------------------
+        // 動作 1：傳送給 Spring Boot API (PostgreSQL)
+        // 使用你的 API_URL 設定
+        // -----------------------------------------------------
+        const postgresPromise = fetch(`${API_URL}/api/contact`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(messageData)
+        }).then(async res => {
+            if (!res.ok) throw new Error('PostgreSQL API Error');
+            return res.json();
         });
 
-        // Success Feedback
+        // -----------------------------------------------------
+        // 動作 2：傳送給 Firebase (Realtime DB)
+        // -----------------------------------------------------
+        const msgRef = ref(db, 'contact_messages');
+        const firebasePromise = push(msgRef, {
+            ...messageData,
+            createdAt: new Date().toISOString(),
+            status: 'unread',
+            source: 'website_form'
+        });
+
+        // ⭐ 等待兩邊都完成 (雙保險)
+        await Promise.all([postgresPromise, firebasePromise]);
+
+        // 成功處理
         setSubmitted(true)
         setTimeout(() => successRef.current?.focus(), 50)
-        setForm({ name: '', email: user ? user.email : '', subject: '', message: '' }) // Keep email if logged in
+        setForm({ name: '', email: user ? user.email : '', subject: '', message: '' }) 
         setTimeout(() => setSubmitted(false), 3000)
 
     } catch (error) {
         console.error("Error sending contact message:", error);
-        alert("Failed to send message. Please try again.");
+        alert("發送失敗，請稍後再試 (請確認後端是否開啟)");
     } finally {
         setIsSubmitting(false);
     }
   }
 
-  // Animation variants (No changes needed)
+  // Animation variants
   const containerLeft = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { delayChildren: 0.05, staggerChildren: 0.06 } } }
   const containerRight = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { delayChildren: 0.2, staggerChildren: 0.12 } } }
   const item = { hidden: { opacity: 0, y: 18 }, show: { opacity: 1, y: 0, transition: { duration: 0.45 } } }
 
-  // Static Data (No changes needed)
+  // Static Data
   const faqItems = [
     { id: 'delivery', icon: IoCarOutline, question: 'Do you offer delivery service?', answer: 'Yes! We offer delivery within a 5-mile radius. Orders can be placed through our website or mobile app. Delivery fees vary based on distance.' },
     { id: 'payment', icon: IoCardOutline, question: 'What payment methods do you accept?', answer: 'We accept all major credit cards, debit cards, and digital wallets including Apple Pay and Google Pay. Cash is also accepted for in-store purchases.' },
@@ -283,7 +315,7 @@ function Contact() {
         </motion.div>
       </div>
 
-      {/* ⭐ 5. Interactive Map Section */}
+      {/* Interactive Map Section */}
       <div className="container mx-auto px-6 mt-12">
         <motion.div 
           className="relative bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md"
@@ -293,7 +325,7 @@ function Contact() {
              {/* Map Container */}
              <MapContainer center={[40.7128, -74.0060]} zoom={11} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
                 <TileLayer
-                  attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                  attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 
