@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase/config';
-import { ref, set, update, onValue } from 'firebase/database'; // ⭐ 增加 update
+import { ref, update, onValue } from 'firebase/database'; 
 import { updateProfile } from 'firebase/auth'; 
 import { motion } from 'framer-motion';
 import Notification from '../components/Notification/Notification';
-import { IoPerson, IoCall, IoLocation, IoMail, IoSave, IoCamera, IoShieldCheckmark } from "react-icons/io5"; // ⭐ 增加 icon
+import { IoPerson, IoCall, IoLocation, IoMail, IoSave, IoCamera, IoShieldCheckmark } from "react-icons/io5"; 
 import { useTranslation } from 'react-i18next';
 
 const Profile = () => {
@@ -19,7 +19,7 @@ const Profile = () => {
     phone: '',
     address: '',
     photoURL: '',
-    roleRequest: '' // ⭐ 新增：紀錄申請狀態
+    roleRequest: '' 
   });
 
   useEffect(() => {
@@ -33,7 +33,7 @@ const Profile = () => {
             phone: data.phone || '',
             address: data.address || '',
             photoURL: data.photoURL || user.photoURL || '',
-            roleRequest: data.roleRequest || '' // ⭐ 讀取申請狀態
+            roleRequest: data.roleRequest || '' 
           });
         }
         setLoading(false);
@@ -46,28 +46,64 @@ const Profile = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e) => {
+  // ⭐ 新增：圖片壓縮函式 (解決圖片太大無法上傳的問題)
+  const compressImage = (file) => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          // 設定最大寬度為 300px (大頭貼不需要太大)
+          const maxWidth = 300;
+          const scaleSize = maxWidth / img.width;
+          canvas.width = maxWidth;
+          canvas.height = img.height * scaleSize;
+
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          // 壓縮成 JPEG，品質 0.7 (大幅減少字串長度)
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+          resolve(compressedBase64);
+        };
+      };
+    });
+  };
+
+  // ⭐ 修改：使用壓縮函式處理圖片
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        alert("Image size should be less than 2MB");
-        return;
+      try {
+        // 直接進行壓縮，不需要再限制 2MB，因為壓縮後一定很小
+        const compressedBase64 = await compressImage(file);
+        setFormData(prev => ({ ...prev, photoURL: compressedBase64 }));
+      } catch (error) {
+        console.error("Image processing error:", error);
+        alert("Error processing image");
       }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, photoURL: reader.result }));
-      };
-      reader.readAsDataURL(file);
     }
   };
 
+  // ⭐ 修改：儲存邏輯加入重新整理
   const handleSave = async (e) => {
     e.preventDefault();
     if (!user) return;
 
+    // 簡單的 Loading 處理，防止重複點擊
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    if(submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Saving...";
+    }
+
     try {
       const userRef = ref(db, `users/${user.uid}/profile`);
-      // 更新資料，保留原有的 roleRequest
+      
+      // 1. 更新資料庫
       await update(userRef, {
           username: formData.username,
           phone: formData.phone,
@@ -75,25 +111,37 @@ const Profile = () => {
           photoURL: formData.photoURL
       });
 
+      // 2. 更新 Auth Profile (Navbar 是讀取這裡的)
       await updateProfile(user, {
         displayName: formData.username,
         photoURL: formData.photoURL
       });
       
       setNotify({ isVisible: true, message: t('profile.success') });
-      setTimeout(() => setNotify({ ...notify, isVisible: false }), 3000);
+      
+      // ⭐ 關鍵：延遲 1 秒後重新整理網頁
+      // 這樣 Navbar 才會重新抓取最新的 Auth 資料並顯示新照片
+      setTimeout(() => {
+          setNotify({ ...notify, isVisible: false });
+          window.location.reload(); 
+      }, 1000);
+
     } catch (error) {
       console.error("Save Error:", error);
-      alert("Error saving profile");
+      alert(`Error saving profile: ${error.message}`);
+      // 發生錯誤時恢復按鈕
+      if(submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerText = t('profile.save'); // 或是原本的按鈕文字
+      }
     }
   };
 
-  // ⭐ 新增：處理申請管理員邏輯
   const handleApplyAdmin = async () => {
       if(!user) return;
       try {
           const userRef = ref(db, `users/${user.uid}/profile`);
-          await update(userRef, { roleRequest: 'pending' }); // 設為 pending
+          await update(userRef, { roleRequest: 'pending' }); 
           setFormData(prev => ({ ...prev, roleRequest: 'pending' }));
           setNotify({ isVisible: true, message: "Admin application sent!" });
           setTimeout(() => setNotify({ ...notify, isVisible: false }), 3000);
@@ -213,7 +261,6 @@ const Profile = () => {
                     <IoSave className="text-xl"/> {t('profile.save')}
                 </motion.button>
 
-                {/* ⭐ 申請管理員按鈕邏輯 */}
                 {formData.roleRequest === 'pending' ? (
                     <button disabled className="w-full bg-gray-300 text-gray-600 font-bold py-3 rounded-xl cursor-not-allowed flex items-center justify-center gap-2">
                         <IoShieldCheckmark/> Application Pending...
