@@ -2,7 +2,7 @@
 
 這是一個現代化的全端美食主題網站，結合了 **React** 前端互動介面與 **Spring Boot** 後端架構，並透過 **PostgreSQL** 進行資料持久化儲存。專案展示了完整的全端開發流程，包含響應式設計、動畫效果、API 串接以及資料庫操作。
 
-![Website Screenshot](https://raw.githubusercontent.com/yo-yo0613/react-food-website/refs/heads/main/screenshots/home.png)
+![Website Screenshot](https://raw.githubusercontent.com/yo-yo0613/react-food-website/refs/heads/main/react-food-website/screenshots/home.png)
 
 ## 🔗 線上預覽 (Live Demo)
 
