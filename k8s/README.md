@@ -1,5 +1,10 @@
 # Kubernetes 部署說明 ☸️
 
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![YAML](https://img.shields.io/badge/YAML-CB171E?style=for-the-badge&logo=yaml&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+
 此目錄包含 Foodies 專案的 Kubernetes 範例資源（`deployment.yaml`），用於在 k8s 叢集內部署後端（Spring Boot）與前端（React + Nginx）。
 
 ---
